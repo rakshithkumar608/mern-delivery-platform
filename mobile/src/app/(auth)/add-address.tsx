@@ -251,10 +251,25 @@ export default function AddAddressScreen() {
 
   // Confirm final address & proceed to Home
   const handleConfirmAddress = () => {
-    toast.success(`Address saved for ${selectedTag}: ${currentAddress} 🍽️`);
-    setTimeout(() => {
-      router.replace("/home");
-    }, 500);
+    const street =
+      manualForm.street.trim() ||
+      currentAddress.split(",")[0]?.trim() ||
+      "123 Main Street";
+    const city = manualForm.city.trim() || "New York";
+
+    saveAddress({
+      label: selectedTag,
+      street,
+      unit: manualForm.unit.trim(),
+      city,
+      state: manualForm.state.trim() || "NY",
+      zipCode: manualForm.zipCode.trim() || "10001",
+      formattedAddress: currentAddress,
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
+      instructions: manualForm.instructions.trim(),
+      isDefault: true,
+    });
   };
 
   const handleSkip = () => {
@@ -491,11 +506,18 @@ export default function AddAddressScreen() {
           <View className="w-full pt-6">
             <Pressable
               onPress={handleConfirmAddress}
-              className="h-13 w-full items-center justify-center rounded-full bg-[#00B37A] active:bg-primary-dark shadow-sm"
+              disabled={isSavingAddress}
+              className={`h-13 w-full items-center justify-center rounded-full bg-[#00B37A] active:bg-primary-dark shadow-sm ${
+                isSavingAddress ? "opacity-80" : ""
+              }`}
             >
-              <Text className="text-base font-semibold text-white">
-                Confirm Address
-              </Text>
+              {isSavingAddress ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text className="text-base font-semibold text-white">
+                  Confirm Address
+                </Text>
+              )}
             </Pressable>
 
             {/* Skip for now text link */}
