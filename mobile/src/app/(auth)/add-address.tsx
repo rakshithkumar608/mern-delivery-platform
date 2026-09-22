@@ -88,6 +88,7 @@ export default function AddAddressScreen() {
         });
 
         const { latitude, longitude } = location.coords;
+        setCoords({ latitude, longitude });
 
         let street = "";
         let city = "";
