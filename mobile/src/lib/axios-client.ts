@@ -2,7 +2,7 @@ import axios from "axios";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-import { getAuthToken } from "./auth-storage";
+import { getToken } from "@/features/auth/token-storage";
 
 // Determine the most appropriate base URL for the current environment
 const getBaseUrl = (): string => {
@@ -39,7 +39,7 @@ export const API = axios.create({
 API.interceptors.request.use(
   async (config) => {
     try {
-      const token = await getAuthToken();
+      const token = await getToken();
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }

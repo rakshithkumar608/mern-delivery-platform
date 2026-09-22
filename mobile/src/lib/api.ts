@@ -76,6 +76,7 @@ export interface AuthResponse {
   message: string;
   user: User;
   token: string;
+  hasAddress: boolean;
 }
 
 export interface BaseApiResponse {
@@ -134,8 +135,13 @@ export const logoutMutationFn = async (): Promise<BaseApiResponse> => {
 export const getCurrentUserQueryFn = async (): Promise<{
   success: boolean;
   user: User;
+  hasAddress: boolean;
 }> => {
-  const response = await API.get<{ success: boolean; user: User }>("/auth/me");
+  const response = await API.get<{
+    success: boolean;
+    user: User;
+    hasAddress: boolean;
+  }>("/auth/me");
   return response.data;
 };
 

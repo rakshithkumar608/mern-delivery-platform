@@ -17,7 +17,7 @@ import { useUniwind } from "uniwind";
 import { ActivityIndicator } from "react-native";
 
 import { loginMutationFn } from "@/lib/api";
-import { saveAuthToken, saveStoredUser } from "@/lib/auth-storage";
+import { setToken, setUser } from "@/features/auth/token-storage";
 import { toast } from "@/lib/sonner";
 
 export default function LoginScreen() {
@@ -34,10 +34,14 @@ export default function LoginScreen() {
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: loginMutationFn,
     onSuccess: async (data) => {
-      await saveAuthToken(data.token);
-      await saveStoredUser(data.user);
+      await setToken(data.token);
+      await setUser(data.user);
       toast.success("Welcome back to Chowly! 🍔");
-      router.replace("/home");
+      if (data.hasAddress) {
+        router.replace("/home");
+      } else {
+        router.replace("/(auth)/add-address");
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message || "Invalid email or password");

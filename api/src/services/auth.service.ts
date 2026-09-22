@@ -1,6 +1,7 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 
 import { Env } from "../config/env.config";
+import { UserAddress } from "../models/user-address.model";
 import { IUserDocument, User } from "../models/user.model";
 import {
   BadRequestException,
@@ -12,6 +13,7 @@ import { LoginInput, RegisterInput } from "../validators/auth.validator";
 export interface AuthResult {
   user: IUserDocument;
   token: string;
+  hasAddress: boolean;
 }
 
 export class AuthService {
@@ -46,7 +48,8 @@ export class AuthService {
     await user.save();
 
     const token = this.generateToken(user);
-    return { user, token };
+    const hasAddress = false;
+    return { user, token, hasAddress };
   }
 
   async login(data: LoginInput): Promise<AuthResult> {
@@ -65,7 +68,10 @@ export class AuthService {
     }
 
     const token = this.generateToken(user);
-    return { user, token };
+    const hasAddress =
+      (await UserAddress.countDocuments({ userId: user._id })) > 0;
+
+    return { user, token, hasAddress };
   }
 
   async getMe(userId: string): Promise<IUserDocument> {

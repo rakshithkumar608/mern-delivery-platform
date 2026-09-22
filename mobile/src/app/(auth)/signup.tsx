@@ -17,7 +17,7 @@ import { useUniwind } from "uniwind";
 import { ActivityIndicator } from "react-native";
 
 import { registerMutationFn } from "@/lib/api";
-import { saveAuthToken, saveStoredUser } from "@/lib/auth-storage";
+import { setToken, setUser } from "@/features/auth/token-storage";
 import { toast } from "@/lib/sonner";
 
 export default function SignUpScreen() {
@@ -36,8 +36,8 @@ export default function SignUpScreen() {
   const { mutate: registerUser, isPending } = useMutation({
     mutationFn: registerMutationFn,
     onSuccess: async (data) => {
-      await saveAuthToken(data.token);
-      await saveStoredUser(data.user);
+      await setToken(data.token);
+      await setUser(data.user);
       toast.success("Account created! Let's set your delivery address 📍");
       router.push("/(auth)/add-address");
     },
