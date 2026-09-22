@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "expo-native-builder": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/expo-native-builder/SKILL.md",
+      "computedHash": "3a6a1c4b586d3c6f3469b776c281d4bc6d289b5e4c52289617eb5b1321c73173"
+    },
+    "expo-uniwind-theme": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/expo-uniwind-theme/SKILL.md",
+      "computedHash": "67a445b2e8d27560a235d179fe00eed99167dadf17ec1c20a5cf3d702aecd768"
+    },
+    "mobile-ui-design": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-ui-design/SKILL.md",
+      "computedHash": "208e3f4fe522294e563178e53cba058ec9851db72fbc22c9a7b418fb15950f7b"
+    },
+    "nodejs-payments": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/nodejs-payments/SKILL.md",
+      "computedHash": "8dac61ca15e803368c9dbaf591bda1007938fcb21ba29e7661ab7d3316b13a05"
+    },
+    "nodejs-scaffolding": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/nodejs-scaffolding/SKILL.md",
+      "computedHash": "0eabe9fc60af6546b1dd94d3a2c6147f3b3510760f0eeb9a4f0ec7751a8c7c36"
+    },
+    "plan-project": {
+      "source": "TechWithEmmaYT/TechwithEmma-Skills",
+      "sourceType": "github",
+      "skillPath": "skills/plan-project/SKILL.md",
+      "computedHash": "28419b501c9e5c6574ebcdc885752298ad54b34df02a258ca4de7e2e3b0dcfe4"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "d04e43ec01e921558b93bb8046c14a42a22556689a2827243df900825a4e1604"
+    }
+  }
+}

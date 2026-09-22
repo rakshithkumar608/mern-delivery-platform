@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import "uniwind";
+
+@theme static {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a2e;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a2e;
+  --color-border: #e5e7eb;
+  --color-input: #f7f7f7;
+  --color-muted: #f7f7f7;
+  --color-muted-foreground: #6b7280;
+  --color-primary: #00b37a;
+  --color-primary-foreground: #ffffff;
+  --color-primary-dark: #00875a;
+  --color-secondary: #f0fdf4;
+  --color-secondary-foreground: #065f46;
+  --color-accent: #ff6b35;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #e53e3e;
+  --color-success: #00b37a;
+  --color-warning: #ffb800;
+}
+
+@layer theme {
+  :root {
+    --spacing: 4px;
+    --radius-card: 16px;
+    --radius-control: 12px;
+    --radius-chip: 20px;
+    --radius-sheet: 24px;
+
+    --font-sans: "Inter_400Regular";
+    --font-medium: "Inter_500Medium";
+    --font-semibold: "Inter_600SemiBold";
+    --font-bold: "Inter_700Bold";
+
+    @variant light {
+      --color-background: #ffffff;
+      --color-foreground: #1a1a2e;
+      --color-card: #ffffff;
+      --color-card-foreground: #1a1a2e;
+      --color-border: #e5e7eb;
+      --color-input: #f7f7f7;
+      --color-muted: #f7f7f7;
+      --color-muted-foreground: #6b7280;
+      --color-primary: #00b37a;
+      --color-primary-foreground: #ffffff;
+      --color-primary-dark: #00875a;
+      --color-secondary: #f0fdf4;
+      --color-secondary-foreground: #065f46;
+      --color-accent: #ff6b35;
+      --color-accent-foreground: #ffffff;
+      --color-destructive: #e53e3e;
+      --color-success: #00b37a;
+      --color-warning: #ffb800;
+    }
+
+    @variant dark {
+      --color-background: #1a1a2e;
+      --color-foreground: #f0f0f5;
+      --color-card: #222240;
+      --color-card-foreground: #f0f0f5;
+      --color-border: #2d2d4a;
+      --color-input: #222240;
+      --color-muted: #222240;
+      --color-muted-foreground: #9ca3af;
+      --color-primary: #00d68f;
+      --color-primary-foreground: #ffffff;
+      --color-primary-dark: #00b37a;
+      --color-secondary: #1a3a2a;
+      --color-secondary-foreground: #d1fae5;
+      --color-accent: #ff8a5c;
+      --color-accent-foreground: #ffffff;
+      --color-destructive: #fc5a5a;
+      --color-success: #00d68f;
+      --color-warning: #ffcb45;
+    }
+  }
+}
