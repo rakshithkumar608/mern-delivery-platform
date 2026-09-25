@@ -379,13 +379,13 @@ export default function HomeScreen() {
               <Pressable
                 onPress={() => setSelectedCategory("all")}
                 className="items-center active:opacity-85"
-                style={{ width: 58 }}
+                style={{ width: 56 }}
               >
                 <View
                   style={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: 27,
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
                     borderWidth: selectedCategory === "all" ? 2 : 1.5,
                     borderColor:
                       selectedCategory === "all"
@@ -412,7 +412,7 @@ export default function HomeScreen() {
                 >
                   <Feather
                     name="grid"
-                    size={22}
+                    size={24}
                     color={
                       selectedCategory === "all"
                         ? "#00B37A"
@@ -454,14 +454,15 @@ export default function HomeScreen() {
                     key={cat._id || cat.slug}
                     onPress={() => setSelectedCategory(cat.slug)}
                     className="items-center active:opacity-85"
-                    style={{ width: 58 }}
+                    style={{ width: 56 }}
                   >
                     {/* Circle with unique pastel background color */}
                     <View
                       style={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: 27,
+                        width: 52,
+                        height: 52,
+                        borderRadius: 26,
+                        overflow: "hidden",
                         borderWidth: isSelected ? 2 : 1.5,
                         borderColor: isSelected
                           ? "#00B37A"
@@ -485,7 +486,10 @@ export default function HomeScreen() {
                     >
                       <Image
                         source={imageSource}
-                        style={{ width: 36, height: 36 }}
+                        style={{
+                          width: 44,
+                          height: 44,
+                        }}
                         contentFit="contain"
                         transition={200}
                       />
@@ -508,6 +512,8 @@ export default function HomeScreen() {
                   </Pressable>
                 );
               })}
+
+
             </View>
           </ScrollView>
 
