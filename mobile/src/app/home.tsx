@@ -1,4 +1,5 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -15,7 +16,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUniwind } from "uniwind";
 
 import { AddressBottomSheet } from "@/components/address-bottom-sheet";
+import { Category, fetchCategoriesQueryFn, getImageUrl } from "@/lib/api";
 import { toast } from "@/lib/sonner";
+
+// ─── Local Assets Map ───────────────────────────────────────────────────────
+const LOCAL_CATEGORY_IMAGES: Record<string, any> = {
+  offers: require("../../assets/category-imgs/offer.png"),
+  burgers: require("../../assets/category-imgs/burger.png"),
+  pizza: require("../../assets/category-imgs/pizza.png"),
+  sushi: require("../../assets/category-imgs/sushi.png"),
+  healthy: require("../../assets/category-imgs/healthy.png"),
+  desserts: require("../../assets/category-imgs/desserts.png"),
+  drinks: require("../../assets/category-imgs/drinks.png"),
+  jollof: require("../../assets/category-imgs/jollof.png"),
+};
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
@@ -70,34 +84,86 @@ const OFFERS = [
   },
 ];
 
-
-const CATEGORIES = [
-  { id: "all", name: "All", icon: "grid" as const, family: "feather" },
+const FALLBACK_CATEGORIES: Category[] = [
   {
-    id: "offers",
+    _id: "offers",
     name: "Offers",
-    icon: "tag" as const,
-    family: "feather",
+    slug: "offers",
+    image: "/assets/category-imgs/offer.png",
+    backgroundColor: "#FEE2E2",
+    textColor: "#DC2626",
+    isActive: true,
+    displayOrder: 1,
   },
-  { id: "pizza", name: "Pizza", icon: "pizza-outline" as const, family: "ionicons" },
   {
-    id: "burgers",
+    _id: "burgers",
     name: "Burgers",
-    icon: "fast-food-outline" as const,
-    family: "ionicons",
+    slug: "burgers",
+    image: "/assets/category-imgs/burger.png",
+    backgroundColor: "#FFF3E0",
+    textColor: "#D97706",
+    isActive: true,
+    displayOrder: 2,
   },
   {
-    id: "sushi",
+    _id: "pizza",
+    name: "Pizza",
+    slug: "pizza",
+    image: "/assets/category-imgs/pizza.png",
+    backgroundColor: "#FFE4E6",
+    textColor: "#E11D48",
+    isActive: true,
+    displayOrder: 3,
+  },
+  {
+    _id: "sushi",
     name: "Sushi",
-    icon: "fish-outline" as const,
-    family: "ionicons",
+    slug: "sushi",
+    image: "/assets/category-imgs/sushi.png",
+    backgroundColor: "#EDE9FE",
+    textColor: "#7C3AED",
+    isActive: true,
+    displayOrder: 4,
   },
-  { id: "coffee", name: "Coffee", icon: "cafe-outline" as const, family: "ionicons" },
   {
-    id: "desserts",
+    _id: "healthy",
+    name: "Healthy",
+    slug: "healthy",
+    image: "/assets/category-imgs/healthy.png",
+    backgroundColor: "#DCFCE7",
+    textColor: "#16A34A",
+    isActive: true,
+    displayOrder: 5,
+  },
+  {
+    _id: "desserts",
     name: "Desserts",
-    icon: "ice-cream-outline" as const,
-    family: "ionicons",
+    slug: "desserts",
+    image: "/assets/category-imgs/desserts.png",
+    backgroundColor: "#FCE7F3",
+    textColor: "#DB2777",
+    isActive: true,
+    displayOrder: 6,
+  },
+  {
+    _id: "drinks",
+    name: "Drinks",
+    slug: "drinks",
+    image: "/assets/category-imgs/drinks.png",
+    backgroundColor: "#E0F2FE",
+    textColor: "#0284C7",
+    isActive: true,
+    displayOrder: 7,
+  },
+  {
+    _id: "jollof",
+    name: "Jollof",
+    slug: "jollof",
+    image: "/assets/category-imgs/jollof.png",
+    backgroundColor: "#FEF3C7",
+    textColor: "#B45309",
+    isActive: true,
+    displayOrder: 8,
   },
 ];
 
@@ -179,6 +245,18 @@ export default function HomeScreen() {
   const [selectedAddressId, setSelectedAddressId] = useState("home");
   const [deliveryLabel, setDeliveryLabel] = useState("Home");
   const [activeOfferIndex, setActiveOfferIndex] = useState(0);
+
+  // TanStack Query: Fetch food categories from API
+  const { data: categoriesResponse } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategoriesQueryFn,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const categoryList: Category[] =
+    categoriesResponse?.categories && categoriesResponse.categories.length > 0
+      ? categoriesResponse.categories
+      : FALLBACK_CATEGORIES;
 
   // Auto-rotate offers every 3 seconds
   const offerListRef = useRef<FlatList>(null);
@@ -286,51 +364,142 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 90 }}
         >
-          {/*  CATEGORY ICONS (Outlined circles + label)  */}
+          {/* ─── CATEGORY ICONS (Unique pastel background circles + 3D assets) ─── */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingTop: 20,
+              paddingHorizontal: 20,
+              paddingTop: 18,
               paddingBottom: 6,
             }}
           >
-            <View className="flex-row gap-5">
-              {CATEGORIES.map((cat) => {
-                const isSelected = selectedCategory === cat.id;
+            <View className="flex-row items-center gap-4">
+              {/* "All" category circle */}
+              <Pressable
+                onPress={() => setSelectedCategory("all")}
+                className="items-center active:opacity-85"
+                style={{ width: 58 }}
+              >
+                <View
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: 27,
+                    borderWidth: selectedCategory === "all" ? 2 : 1.5,
+                    borderColor:
+                      selectedCategory === "all"
+                        ? "#00B37A"
+                        : isDark
+                        ? "#2a2d36"
+                        : "#E5E7EB",
+                    backgroundColor:
+                      selectedCategory === "all"
+                        ? isDark
+                          ? "rgba(0,179,122,0.18)"
+                          : "#E6F7F2"
+                        : isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : "#F3F4F6",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: selectedCategory === "all" ? "#00B37A" : "#000",
+                    shadowOffset: { width: 0, height: selectedCategory === "all" ? 2 : 1 },
+                    shadowOpacity: selectedCategory === "all" ? 0.2 : 0.04,
+                    shadowRadius: selectedCategory === "all" ? 4 : 2,
+                    elevation: selectedCategory === "all" ? 3 : 1,
+                  }}
+                >
+                  <Feather
+                    name="grid"
+                    size={22}
+                    color={
+                      selectedCategory === "all"
+                        ? "#00B37A"
+                        : isDark
+                        ? "#9CA3AF"
+                        : "#4B5563"
+                    }
+                  />
+                </View>
+                <Text
+                  className="mt-1.5 text-center font-sans"
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: selectedCategory === "all" ? "700" : "500",
+                    color:
+                      selectedCategory === "all"
+                        ? "#00B37A"
+                        : isDark
+                        ? "#9CA3AF"
+                        : "#374151",
+                  }}
+                  numberOfLines={1}
+                >
+                  All
+                </Text>
+              </Pressable>
+
+              {/* Dynamic categories from API / Seed */}
+              {categoryList.map((cat) => {
+                const isSelected = selectedCategory === cat.slug;
+                const imageSource = cat.image?.startsWith("http")
+                  ? { uri: cat.image }
+                  : LOCAL_CATEGORY_IMAGES[cat.slug] || {
+                      uri: getImageUrl(cat.image),
+                    };
+
                 return (
                   <Pressable
-                    key={cat.id}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    className="items-center"
-                    style={{ width: 56 }}
+                    key={cat._id || cat.slug}
+                    onPress={() => setSelectedCategory(cat.slug)}
+                    className="items-center active:opacity-85"
+                    style={{ width: 58 }}
                   >
-                    {/* Outlined circle — green border when selected */}
+                    {/* Circle with unique pastel background color */}
                     <View
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 24,
-                        borderWidth: 1.5,
-                        borderColor: isSelected ? "#00B37A" : isDark ? "#3a3a5c" : "#d1d5db",
-                        backgroundColor: isSelected
-                          ? isDark ? "rgba(0,179,122,0.12)" : "rgba(0,179,122,0.06)"
-                          : "transparent",
+                        width: 54,
+                        height: 54,
+                        borderRadius: 27,
+                        borderWidth: isSelected ? 2 : 1.5,
+                        borderColor: isSelected
+                          ? "#00B37A"
+                          : isDark
+                          ? "transparent"
+                          : "rgba(0,0,0,0.04)",
+                        backgroundColor: isDark
+                          ? "rgba(255,255,255,0.08)"
+                          : cat.backgroundColor || "#F3F4F6",
                         alignItems: "center",
                         justifyContent: "center",
+                        shadowColor: isSelected ? "#00B37A" : "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: isSelected ? 2 : 1,
+                        },
+                        shadowOpacity: isSelected ? 0.25 : 0.05,
+                        shadowRadius: isSelected ? 4 : 2,
+                        elevation: isSelected ? 3 : 1,
                       }}
                     >
-                      {renderCategoryIcon(cat.icon, cat.family, isSelected)}
+                      <Image
+                        source={imageSource}
+                        style={{ width: 36, height: 36 }}
+                        contentFit="contain"
+                        transition={200}
+                      />
                     </View>
                     <Text
-                      className="mt-1.5 text-center"
+                      className="mt-1.5 text-center font-sans"
                       style={{
-                        fontSize: 11,
+                        fontSize: 11.5,
                         fontWeight: isSelected ? "700" : "500",
                         color: isSelected
                           ? "#00B37A"
-                          : isDark ? "#9ca3af" : "#374151",
+                          : isDark
+                          ? "#9CA3AF"
+                          : "#374151",
                       }}
                       numberOfLines={1}
                     >
@@ -341,6 +510,7 @@ export default function HomeScreen() {
               })}
             </View>
           </ScrollView>
+
 
           {/* ─── AUTO-ROTATING OFFERS BANNER ─── */}
           <View className="mt-4">

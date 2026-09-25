@@ -12,13 +12,22 @@ import { apiLimiter } from "./middlewares/rateLimiter.middleware";
 import { routes } from "./routes/v1";
 import { logger } from "./utils/logger";
 
+import path from "path";
+
 const app = express();
 
 // ─── Passport Strategy Configuration ─────────────────────────────────
 configurePassport();
 
 // ─── Security ────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// ─── Static Assets (Category images, fallback icons) ───────────────────
+app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
 // ─── Body parsing & Auth ─────────────────────────────────────────────
 app.use(express.json({ limit: "100kb" }));

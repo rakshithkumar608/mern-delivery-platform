@@ -95,6 +95,42 @@ export interface AddressResponse {
   address: UserAddress;
 }
 
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  image: string;
+  cloudinaryPublicId?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface CategoriesResponse {
+  success: boolean;
+  count: number;
+  categories: Category[];
+}
+
+export interface CategoryResponse {
+  success: boolean;
+  category: Category;
+}
+
+/**
+ * Resolves an image URL: returns Cloudinary / absolute URL as-is,
+ * or prepends the API host URL for local static assets.
+ */
+export const getImageUrl = (imagePath?: string): string => {
+  if (!imagePath) return "";
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+  const root = API.defaults.baseURL ? API.defaults.baseURL.replace(/\/api\/v1\/?$/, "") : "";
+  return `${root}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+};
+
 // ─── Centralized API Functions for TanStack React Query ──────────────
 
 /**
@@ -206,3 +242,13 @@ export const deleteAddressMutationFn = async (
   const response = await API.delete<BaseApiResponse>(`/addresses/${addressId}`);
   return response.data;
 };
+
+/**
+ * Fetch all food categories
+ * Used in: useQuery({ queryKey: ['categories'], queryFn: fetchCategoriesQueryFn })
+ */
+export const fetchCategoriesQueryFn = async (): Promise<CategoriesResponse> => {
+  const response = await API.get<CategoriesResponse>("/categories");
+  return response.data;
+};
+
