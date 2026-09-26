@@ -118,6 +118,75 @@ export interface CategoryResponse {
   category: Category;
 }
 
+export interface SizeOption {
+  label: string;
+  price: number;
+}
+
+export interface ToppingOption {
+  label: string;
+  price: number;
+}
+
+export interface MenuItem {
+  _id: string;
+  id?: string;
+  restaurantId?: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  rating?: number;
+  reviewCount?: number;
+  isPopular?: boolean;
+  isAvailable?: boolean;
+  sizes?: SizeOption[];
+  toppings?: ToppingOption[];
+  allergens?: string[];
+  displayOrder?: number;
+}
+
+export interface Restaurant {
+  _id: string;
+  id?: string;
+  name: string;
+  slug: string;
+  description: string;
+  cuisineType: string[];
+  coverImage: string;
+  logo?: string;
+  rating: number;
+  totalReviews: number;
+  deliveryTime: string;
+  distance: string;
+  deliveryFee: number;
+  minOrder: number;
+  currency: string;
+  openingHours: string;
+  offer?: string;
+  offerSubtitle?: string;
+  allergensInfo?: string;
+  isFeatured: boolean;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface RestaurantsResponse {
+  success: boolean;
+  count: number;
+  total: number;
+  restaurants: Restaurant[];
+}
+
+export interface RestaurantDetailResponse {
+  success: boolean;
+  restaurant: Restaurant;
+  items: MenuItem[];
+  categories: string[];
+  popularItems: MenuItem[];
+}
+
 /**
  * Resolves an image URL: returns Cloudinary / absolute URL as-is,
  * or prepends the API host URL for local static assets.
@@ -249,6 +318,35 @@ export const deleteAddressMutationFn = async (
  */
 export const fetchCategoriesQueryFn = async (): Promise<CategoriesResponse> => {
   const response = await API.get<CategoriesResponse>("/categories");
+  return response.data;
+};
+
+/**
+  * Fetch restaurants with optional filters (category, cuisine, isFeatured, search)
+  * Used in: useQuery({ queryKey: ['restaurants', filter], queryFn: () => fetchRestaurantsQueryFn(...) })
+  */
+export const fetchRestaurantsQueryFn = async (params?: {
+  isFeatured?: boolean;
+  category?: string;
+  cuisine?: string;
+  search?: string;
+}): Promise<RestaurantsResponse> => {
+  const response = await API.get<RestaurantsResponse>("/restaurants", {
+    params,
+  });
+  return response.data;
+};
+
+/**
+  * Fetch full restaurant details and menu items by ID or slug
+  * Used in: useQuery({ queryKey: ['restaurant', id], queryFn: () => fetchRestaurantByIdQueryFn(id) })
+  */
+export const fetchRestaurantByIdQueryFn = async (
+  idOrSlug: string
+): Promise<RestaurantDetailResponse> => {
+  const response = await API.get<RestaurantDetailResponse>(
+    `/restaurants/${idOrSlug}`
+  );
   return response.data;
 };
 

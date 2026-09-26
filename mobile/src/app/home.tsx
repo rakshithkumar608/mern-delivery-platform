@@ -16,7 +16,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUniwind } from "uniwind";
 
 import { AddressBottomSheet } from "@/components/address-bottom-sheet";
-import { Category, fetchCategoriesQueryFn, getImageUrl } from "@/lib/api";
+import {
+  Category,
+  Restaurant,
+  fetchCategoriesQueryFn,
+  fetchRestaurantsQueryFn,
+  getImageUrl,
+} from "@/lib/api";
 import { toast } from "@/lib/sonner";
 
 // ─── Local Assets Map ───────────────────────────────────────────────────────
@@ -168,64 +174,99 @@ const FALLBACK_CATEGORIES: Category[] = [
 ];
 
 
-const FEATURED = [
+const FALLBACK_FEATURED = [
   {
-    id: "f1",
-    name: "Burger Palace",
-    rating: "4.7",
-    reviews: "342",
-    time: "25-35 min",
-    deliveryFee: "$2.49 delivery",
-    image:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80",
+    id: "bella-italia",
+    _id: "bella-italia",
+    slug: "bella-italia",
+    name: "Bella Italia",
+    cuisineType: ["Italian", "Pizza", "Pasta"],
+    rating: 4.6,
+    totalReviews: 812,
+    deliveryTime: "25-35 min",
+    deliveryFee: 1.49,
+    currency: "£",
+    coverImage:
+      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
+    isFeatured: true,
   },
   {
-    id: "f2",
+    id: "burger-palace",
+    _id: "burger-palace",
+    slug: "burger-palace",
+    name: "Burger Palace",
+    cuisineType: ["American", "Burgers"],
+    rating: 4.7,
+    totalReviews: 342,
+    deliveryTime: "25-35 min",
+    deliveryFee: 2.49,
+    currency: "$",
+    coverImage:
+      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80",
+    isFeatured: true,
+  },
+  {
+    id: "sakura-sushi",
+    _id: "sakura-sushi",
+    slug: "sakura-sushi",
     name: "Sakura Sushi",
-    rating: "4.8",
-    reviews: "215",
-    time: "30-40 min",
-    deliveryFee: "Free delivery",
-    freeDelivery: true,
-    image:
+    cuisineType: ["Japanese", "Sushi"],
+    rating: 4.8,
+    totalReviews: 215,
+    deliveryTime: "30-40 min",
+    deliveryFee: 0,
+    currency: "$",
+    coverImage:
       "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80",
+    isFeatured: true,
   },
 ];
 
-const NEARBY = [
+const FALLBACK_NEARBY = [
   {
-    id: "n1",
+    id: "taco-fiesta",
+    _id: "taco-fiesta",
+    slug: "taco-fiesta",
     name: "Taco Fiesta",
-    cuisine: "Mexican",
-    rating: "4.6",
-    reviews: "198",
-    time: "20-30 min",
-    deliveryFee: "$1.99 delivery",
-    image:
-      "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=200&auto=format&fit=crop&q=80",
+    cuisineType: ["Mexican", "Street Food"],
+    rating: 4.6,
+    totalReviews: 198,
+    deliveryTime: "20-30 min",
+    deliveryFee: 1.99,
+    currency: "$",
+    coverImage:
+      "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=300&auto=format&fit=crop&q=80",
+    isFeatured: false,
   },
   {
-    id: "n2",
-    name: "Pizza Haven",
-    cuisine: "Italian",
-    rating: "4.5",
-    reviews: "276",
-    time: "25-35 min",
-    deliveryFee: "$2.49 delivery",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "n3",
+    id: "burger-craft-co",
+    _id: "burger-craft-co",
+    slug: "burger-craft-co",
     name: "Burger Craft Co.",
-    cuisine: "American",
-    rating: "4.9",
-    reviews: "412",
-    time: "15-25 min",
-    deliveryFee: "Free delivery",
-    freeDelivery: true,
-    image:
-      "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=200&auto=format&fit=crop&q=80",
+    cuisineType: ["American", "Burgers"],
+    rating: 4.9,
+    totalReviews: 412,
+    deliveryTime: "15-25 min",
+    deliveryFee: 0,
+    currency: "$",
+    coverImage:
+      "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=300&auto=format&fit=crop&q=80",
+    isFeatured: false,
+  },
+  {
+    id: "green-garden-bowl",
+    _id: "green-garden-bowl",
+    slug: "green-garden-bowl",
+    name: "Green Garden Bowl",
+    cuisineType: ["Healthy", "Salads"],
+    rating: 4.7,
+    totalReviews: 180,
+    deliveryTime: "15-25 min",
+    deliveryFee: 1.49,
+    currency: "$",
+    coverImage:
+      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&auto=format&fit=crop&q=80",
+    isFeatured: false,
   },
 ];
 
@@ -257,6 +298,39 @@ export default function HomeScreen() {
     categoriesResponse?.categories && categoriesResponse.categories.length > 0
       ? categoriesResponse.categories
       : FALLBACK_CATEGORIES;
+
+  // TanStack Query: Fetch restaurants from API (with category filter)
+  const { data: restaurantsResponse, isLoading: isLoadingRestaurants } = useQuery({
+    queryKey: ["restaurants", selectedCategory],
+    queryFn: () =>
+      fetchRestaurantsQueryFn(
+        selectedCategory !== "all" ? { category: selectedCategory } : undefined
+      ),
+    staleTime: 1000 * 60 * 3,
+  });
+
+  const liveRestaurants = restaurantsResponse?.restaurants ?? [];
+  const featuredList =
+    liveRestaurants.length > 0
+      ? liveRestaurants.filter((r) => r.isFeatured)
+      : selectedCategory === "all"
+      ? FALLBACK_FEATURED
+      : FALLBACK_FEATURED.filter((r) =>
+          r.cuisineType.some((c) =>
+            c.toLowerCase().includes(selectedCategory.toLowerCase())
+          )
+        );
+
+  const nearbyList =
+    liveRestaurants.length > 0
+      ? liveRestaurants.filter((r) => !r.isFeatured)
+      : selectedCategory === "all"
+      ? FALLBACK_NEARBY
+      : FALLBACK_NEARBY.filter((r) =>
+          r.cuisineType.some((c) =>
+            c.toLowerCase().includes(selectedCategory.toLowerCase())
+          )
+        );
 
   // Auto-rotate offers every 3 seconds
   const offerListRef = useRef<FlatList>(null);
@@ -650,49 +724,64 @@ export default function HomeScreen() {
               contentContainerStyle={{ paddingHorizontal: 24 }}
             >
               <View className="flex-row gap-3">
-                {FEATURED.map((resto) => (
-                  <Pressable
-                    key={resto.id}
-                    onPress={() => router.push(`/restaurant/${resto.id}` as any)}
-                    className="w-50 overflow-hidden rounded-2xl border border-border bg-card shadow-sm active:opacity-95"
-                  >
-                    <Image
-                      source={{ uri: resto.image }}
-                      style={{ width: "100%", height: 120 }}
-                      contentFit="cover"
-                      transition={300}
-                    />
-                    <View className="p-3">
-                      <Text
-                        className="text-sm font-bold text-foreground"
-                        numberOfLines={1}
-                      >
-                        {resto.name}
-                      </Text>
-                      <View className="flex-row items-center gap-1 mt-1">
-                        <Ionicons name="star" size={12} color="#FFB800" />
-                        <Text className="text-xs font-semibold text-foreground">
-                          {resto.rating}
+                {featuredList.map((resto: any) => {
+                  const targetId = resto.slug || resto._id || resto.id;
+                  const imageSrc = resto.coverImage || resto.image;
+                  const isFree =
+                    resto.deliveryFee === 0 || resto.freeDelivery === true;
+                  const feeText =
+                    typeof resto.deliveryFee === "number"
+                      ? resto.deliveryFee === 0
+                        ? "Free delivery"
+                        : `${resto.currency || "$"}${resto.deliveryFee.toFixed(2)} delivery`
+                      : resto.deliveryFee;
+
+                  return (
+                    <Pressable
+                      key={targetId}
+                      onPress={() =>
+                        router.push(`/restaurant/${targetId}` as any)
+                      }
+                      className="w-50 overflow-hidden rounded-2xl border border-border bg-card shadow-sm active:opacity-95"
+                    >
+                      <Image
+                        source={{ uri: imageSrc }}
+                        style={{ width: "100%", height: 120 }}
+                        contentFit="cover"
+                        transition={300}
+                      />
+                      <View className="p-3">
+                        <Text
+                          className="text-sm font-bold text-foreground"
+                          numberOfLines={1}
+                        >
+                          {resto.name}
                         </Text>
-                        <Text className="text-xs text-muted-foreground">
-                          ({resto.reviews})
+                        <View className="flex-row items-center gap-1 mt-1">
+                          <Ionicons name="star" size={12} color="#FFB800" />
+                          <Text className="text-xs font-semibold text-foreground">
+                            {resto.rating}
+                          </Text>
+                          <Text className="text-xs text-muted-foreground">
+                            ({resto.totalReviews ?? resto.reviews ?? 0})
+                          </Text>
+                        </View>
+                        <Text className="text-xs text-muted-foreground mt-0.5">
+                          {resto.deliveryTime ?? resto.time ?? "25-35 min"} •{" "}
+                          <Text
+                            className={
+                              isFree
+                                ? "text-[#00B37A] font-semibold"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {feeText}
+                          </Text>
                         </Text>
                       </View>
-                      <Text className="text-xs text-muted-foreground mt-0.5">
-                        {resto.time} •{" "}
-                        <Text
-                          className={
-                            resto.freeDelivery
-                              ? "text-[#00B37A] font-semibold"
-                              : "text-muted-foreground"
-                          }
-                        >
-                          {resto.deliveryFee}
-                        </Text>
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
+                    </Pressable>
+                  );
+                })}
               </View>
             </ScrollView>
           </View>
@@ -704,60 +793,81 @@ export default function HomeScreen() {
             </Text>
 
             <View className="gap-3">
-              {NEARBY.map((resto) => (
-                <Pressable
-                  key={resto.id}
-                  onPress={() => router.push(`/restaurant/${resto.id}` as any)}
-                  className="flex-row items-center rounded-2xl border border-border bg-card p-3 shadow-sm active:opacity-95"
-                >
-                  <Image
-                    source={{ uri: resto.image }}
-                    style={{ width: 64, height: 64, borderRadius: 12 }}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                  <View className="flex-1 ml-3">
-                    <Text className="text-sm font-bold text-foreground">
-                      {resto.name}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground mt-0.5">
-                      {resto.cuisine}
-                    </Text>
-                    <View className="flex-row items-center gap-1 mt-1">
-                      <Ionicons name="star" size={11} color="#FFB800" />
-                      <Text className="text-xs font-semibold text-foreground">
-                        {resto.rating}
-                      </Text>
-                      <Text className="text-xs text-muted-foreground">
-                        ({resto.reviews})
-                      </Text>
-                      <Text className="text-xs text-muted-foreground mx-0.5">
-                        •
-                      </Text>
-                      <Text className="text-xs text-muted-foreground">
-                        {resto.time}
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="items-end">
-                    <Text
-                      className={`text-xs font-medium ${
-                        resto.freeDelivery
-                          ? "text-[#00B37A] font-semibold"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {resto.deliveryFee}
-                    </Text>
-                    <Feather
-                      name="chevron-right"
-                      size={16}
-                      color="#9ca3af"
-                      style={{ marginTop: 4 }}
+              {nearbyList.map((resto: any) => {
+                const targetId = resto.slug || resto._id || resto.id;
+                const imageSrc = resto.coverImage || resto.image;
+                const isFree =
+                  resto.deliveryFee === 0 || resto.freeDelivery === true;
+                const feeText =
+                  typeof resto.deliveryFee === "number"
+                    ? resto.deliveryFee === 0
+                      ? "Free delivery"
+                      : `${resto.currency || "$"}${resto.deliveryFee.toFixed(2)} delivery`
+                    : resto.deliveryFee;
+
+                const cuisineStr = Array.isArray(resto.cuisineType)
+                  ? resto.cuisineType.join(" • ")
+                  : resto.cuisine ?? "";
+
+                return (
+                  <Pressable
+                    key={targetId}
+                    onPress={() =>
+                      router.push(`/restaurant/${targetId}` as any)
+                    }
+                    className="flex-row items-center rounded-2xl border border-border bg-card p-3 shadow-sm active:opacity-95"
+                  >
+                    <Image
+                      source={{ uri: imageSrc }}
+                      style={{ width: 64, height: 64, borderRadius: 12 }}
+                      contentFit="cover"
+                      transition={200}
                     />
-                  </View>
-                </Pressable>
-              ))}
+                    <View className="flex-1 ml-3">
+                      <Text className="text-sm font-bold text-foreground">
+                        {resto.name}
+                      </Text>
+                      {cuisineStr ? (
+                        <Text className="text-xs text-muted-foreground mt-0.5" numberOfLines={1}>
+                          {cuisineStr}
+                        </Text>
+                      ) : null}
+                      <View className="flex-row items-center gap-1 mt-1">
+                        <Ionicons name="star" size={11} color="#FFB800" />
+                        <Text className="text-xs font-semibold text-foreground">
+                          {resto.rating}
+                        </Text>
+                        <Text className="text-xs text-muted-foreground">
+                          ({resto.totalReviews ?? resto.reviews ?? 0})
+                        </Text>
+                        <Text className="text-xs text-muted-foreground mx-0.5">
+                          •
+                        </Text>
+                        <Text className="text-xs text-muted-foreground">
+                          {resto.deliveryTime ?? resto.time ?? "20-30 min"}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="items-end">
+                      <Text
+                        className={`text-xs font-medium ${
+                          isFree
+                            ? "text-[#00B37A] font-semibold"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {feeText}
+                      </Text>
+                      <Feather
+                        name="chevron-right"
+                        size={16}
+                        color="#9ca3af"
+                        style={{ marginTop: 4 }}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
