@@ -106,7 +106,15 @@ export default function RootLayout() {
               style={{ flex: 1, backgroundColor: activePalette.background }}
             >
               <StatusBar style={dark ? "light" : "dark"} />
-              <Stack screenOptions={{ headerShown: false }} />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen
+                  name="dish/[id]"
+                  options={{
+                    presentation: "modal",
+                    animation: "slide_from_bottom",
+                  }}
+                />
+              </Stack>
               <AppToaster
                 background={activePalette.card}
                 border={activePalette.border}

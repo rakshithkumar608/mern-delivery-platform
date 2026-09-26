@@ -109,8 +109,9 @@ const BELLA_ITALIA_ITEMS: MenuItem[] = [
     id: "bi_4",
     name: "Classic Margherita",
     description:
-      "San Marzano tomato sauce, fior di latte mozzarella, fresh basil, and extra virgin olive oil.",
+      "San Marzano tomato sauce, fior di latte mozzarella, fresh basil and extra virgin olive oil.",
     price: 4.29,
+    calories: 680,
     image:
       "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&auto=format&fit=crop&q=80",
     category: "Pizza",
@@ -119,14 +120,17 @@ const BELLA_ITALIA_ITEMS: MenuItem[] = [
     isPopular: false,
     isAvailable: true,
     sizes: [
-      { label: '10" Medium', price: 0 },
-      { label: '12" Large', price: 2.5 },
+      { label: 'Regular (10")', price: 4.29 },
+      { label: 'Large (12")', price: 5.49 },
+      { label: 'Extra Large (14")', price: 6.49 },
     ],
-    toppings: [
-      { label: "Double Mozzarella", price: 1.8 },
-      { label: "Truffle Oil Drizzle", price: 1.2 },
+    extras: [
+      { label: "Extra Mozzarella", price: 1.0 },
+      { label: "Rocket", price: 0.8 },
+      { label: "Cherry Tomatoes", price: 0.8 },
     ],
-    allergens: ["Gluten", "Dairy"],
+    removables: ["No Cheese", "No Basil"],
+    allergens: ["Milk", "Gluten"],
   },
   {
     _id: "bi_5",
@@ -315,16 +319,16 @@ export default function RestaurantDetailScreen() {
   };
 
   const openCustomizationSheet = (dish: MenuItem) => {
-    setSelectedItem({
-      id: dish._id || dish.id || "",
-      name: dish.name,
-      description: dish.description,
-      price: dish.price,
-      image: dish.image,
-      sizes: dish.sizes ?? [{ label: "Regular", price: 0 }],
-      toppings: dish.toppings ?? [],
-    });
+    setSelectedItem(dish);
     setShowItemSheet(true);
+  };
+
+  const handleGoBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/home");
+    }
   };
 
   const cuisineText = Array.isArray(restaurant.cuisineType)
@@ -356,7 +360,7 @@ export default function RestaurantDetailScreen() {
       >
         <View className="flex-row items-center justify-between">
           <Pressable
-            onPress={() => router.back()}
+            onPress={handleGoBack}
             className="h-9 w-9 items-center justify-center rounded-full bg-muted active:scale-95"
           >
             <Feather
@@ -415,7 +419,7 @@ export default function RestaurantDetailScreen() {
           >
             {/* Back Button */}
             <Pressable
-              onPress={() => router.back()}
+              onPress={handleGoBack}
               className="h-10 w-10 items-center justify-center rounded-full bg-white shadow-md active:scale-95"
               style={{ shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 }}
             >
@@ -469,7 +473,7 @@ export default function RestaurantDetailScreen() {
         </View>
 
         {/* ─── OVERLAPPING RESTAURANT INFO CARD ─── */}
-        <View className="-mt-8 rounded-t-[32px] bg-card px-5 pt-5 border-t border-border shadow-md">
+        <View className="-mt-8 rounded-t-4xl bg-card px-5 pt-5 border-t border-border shadow-md">
           {/* Restaurant Title & Cuisines */}
           <Text className="text-2xl font-black text-foreground tracking-tight">
             {restaurant.name}
@@ -516,7 +520,7 @@ export default function RestaurantDetailScreen() {
               </Text>
             </View>
 
-            <View className="h-6 w-[1px] bg-border" />
+            <View className="h-6 w-px bg-border" />
 
             {/* Distance */}
             <View className="flex-1 items-center">
@@ -531,7 +535,7 @@ export default function RestaurantDetailScreen() {
               </Text>
             </View>
 
-            <View className="h-6 w-[1px] bg-border" />
+            <View className="h-6 w-px bg-border" />
 
             {/* Delivery fee */}
             <View className="flex-1 items-center">
@@ -548,7 +552,7 @@ export default function RestaurantDetailScreen() {
               </Text>
             </View>
 
-            <View className="h-6 w-[1px] bg-border" />
+            <View className="h-6 w-px bg-border" />
 
             {/* Minimum order */}
             <View className="flex-1 items-center">

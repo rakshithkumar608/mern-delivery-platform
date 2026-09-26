@@ -82,6 +82,18 @@ export class RestaurantController {
     });
   };
 
+  getMenuItemById = async (req: Request, res: Response): Promise<void> => {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    if (!id || typeof id !== "string") {
+      throw new BadRequestException("Dish ID is required");
+    }
+    const data = await restaurantService.getMenuItemById(id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      ...data,
+    });
+  };
+
   createMenuItem = async (req: Request, res: Response): Promise<void> => {
     const item = await restaurantService.createMenuItem(req.body);
     res.status(HttpStatus.CREATED).json({

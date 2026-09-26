@@ -128,6 +128,11 @@ export interface ToppingOption {
   price: number;
 }
 
+export interface ExtraOption {
+  label: string;
+  price: number;
+}
+
 export interface MenuItem {
   _id: string;
   id?: string;
@@ -135,6 +140,7 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
+  calories?: number;
   image: string;
   category: string;
   rating?: number;
@@ -142,9 +148,17 @@ export interface MenuItem {
   isPopular?: boolean;
   isAvailable?: boolean;
   sizes?: SizeOption[];
+  extras?: ExtraOption[];
   toppings?: ToppingOption[];
+  removables?: string[];
   allergens?: string[];
   displayOrder?: number;
+}
+
+export interface DishDetailResponse {
+  success: boolean;
+  item: MenuItem;
+  restaurant?: Restaurant;
 }
 
 export interface Restaurant {
@@ -349,4 +363,60 @@ export const fetchRestaurantByIdQueryFn = async (
   );
   return response.data;
 };
+
+export interface DishPriceCalculationPayload {
+  sizeLabel?: string;
+  extras?: string[];
+  quantity?: number;
+}
+
+export interface DishPriceCalculationResponse {
+  success: boolean;
+  dishId: string;
+  dishName: string;
+  currency: string;
+  size: string;
+  sizePrice: number;
+  extras: Array<{ label: string; price: number }>;
+  extrasTotal: number;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+/**
+ * Fetch single dish customization details by menu item ID
+ * Used in: useQuery({ queryKey: ['dish', id], queryFn: () => fetchDishByIdQueryFn(id) })
+ */
+export const fetchDishByIdQueryFn = async (
+  dishId: string
+): Promise<DishDetailResponse> => {
+  try {
+    const response = await API.get<DishDetailResponse>(`/dishes/${dishId}`);
+    return response.data;
+  } catch {
+    const fallbackResponse = await API.get<DishDetailResponse>(
+      `/restaurants/menu/${dishId}`
+    );
+    return fallbackResponse.data;
+  }
+};
+
+/**
+ * Calculate customized dish price on the backend
+ */
+export const calculateDishPriceMutationFn = async ({
+  dishId,
+  payload,
+}: {
+  dishId: string;
+  payload: DishPriceCalculationPayload;
+}): Promise<DishPriceCalculationResponse> => {
+  const response = await API.post<DishPriceCalculationResponse>(
+    `/dishes/${dishId}/calculate`,
+    payload
+  );
+  return response.data;
+};
+
 

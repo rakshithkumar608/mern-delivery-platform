@@ -7,13 +7,16 @@ interface SeedItem {
   name: string;
   description: string;
   price: number;
+  calories?: number;
   image: string;
   category: string;
   rating?: number;
   reviewCount?: number;
   isPopular?: boolean;
   sizes?: { label: string; price: number }[];
+  extras?: { label: string; price: number }[];
   toppings?: { label: string; price: number }[];
+  removables?: string[];
   allergens?: string[];
 }
 
@@ -139,8 +142,9 @@ const RESTAURANTS_DATA: SeedRestaurant[] = [
       {
         name: "Classic Margherita",
         description:
-          "San Marzano tomato sauce, fior di latte mozzarella, fresh basil, and extra virgin olive oil on 48h cold fermented dough.",
+          "San Marzano tomato sauce, fior di latte mozzarella, fresh basil and extra virgin olive oil.",
         price: 4.29,
+        calories: 680,
         image:
           "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&auto=format&fit=crop&q=80",
         category: "Pizza",
@@ -148,14 +152,17 @@ const RESTAURANTS_DATA: SeedRestaurant[] = [
         reviewCount: 520,
         isPopular: false,
         sizes: [
-          { label: '10" Medium', price: 0 },
-          { label: '12" Large', price: 2.5 },
+          { label: 'Regular (10")', price: 4.29 },
+          { label: 'Large (12")', price: 5.49 },
+          { label: 'Extra Large (14")', price: 6.49 },
         ],
-        toppings: [
-          { label: "Double Buffalo Mozzarella", price: 1.8 },
-          { label: "Truffle Oil Drizzle", price: 1.2 },
+        extras: [
+          { label: "Extra Mozzarella", price: 1.0 },
+          { label: "Rocket", price: 0.8 },
+          { label: "Cherry Tomatoes", price: 0.8 },
         ],
-        allergens: ["Gluten", "Dairy"],
+        removables: ["No Cheese", "No Basil"],
+        allergens: ["Milk", "Gluten"],
       },
       {
         name: "Diavola Spicy Salami",

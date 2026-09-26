@@ -10,6 +10,10 @@ restaurantRoutes.get(
   "/featured",
   asyncHandler(restaurantController.getFeaturedRestaurants)
 );
+restaurantRoutes.get(
+  "/menu/:id",
+  asyncHandler(restaurantController.getMenuItemById)
+);
 restaurantRoutes.get("/:id", asyncHandler(restaurantController.getRestaurantById));
 
 // Admin/Management endpoints

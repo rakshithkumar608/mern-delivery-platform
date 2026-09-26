@@ -5,6 +5,11 @@ export interface IItemSize {
   price: number;
 }
 
+export interface IItemExtra {
+  label: string;
+  price: number;
+}
+
 export interface IItemTopping {
   label: string;
   price: number;
@@ -15,6 +20,7 @@ export interface IMenuItem {
   name: string;
   description: string;
   price: number;
+  calories?: number;
   image: string;
   category: string;
   rating?: number;
@@ -22,7 +28,9 @@ export interface IMenuItem {
   isPopular: boolean;
   isAvailable: boolean;
   sizes: IItemSize[];
+  extras?: IItemExtra[];
   toppings: IItemTopping[];
+  removables?: string[];
   allergens?: string[];
   displayOrder: number;
   createdAt?: Date;
@@ -85,7 +93,17 @@ const menuItemSchema = new Schema<IMenuItemDocument>(
       default: true,
       index: true,
     },
+    calories: {
+      type: Number,
+      default: 0,
+    },
     sizes: [
+      {
+        label: { type: String, required: true },
+        price: { type: Number, required: true, default: 0 },
+      },
+    ],
+    extras: [
       {
         label: { type: String, required: true },
         price: { type: Number, required: true, default: 0 },
@@ -97,6 +115,10 @@ const menuItemSchema = new Schema<IMenuItemDocument>(
         price: { type: Number, required: true, default: 0 },
       },
     ],
+    removables: {
+      type: [String],
+      default: [],
+    },
     allergens: {
       type: [String],
       default: [],
