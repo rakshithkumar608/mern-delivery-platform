@@ -419,4 +419,132 @@ export const calculateDishPriceMutationFn = async ({
   return response.data;
 };
 
+export interface SearchDishItem extends MenuItem {
+  restaurantName?: string;
+  restaurantSlug?: string;
+  currency?: string;
+}
+
+export interface SearchResponse {
+  success: boolean;
+  query: string;
+  count: number;
+  restaurants: Restaurant[];
+  dishes: SearchDishItem[];
+}
+
+/**
+ * Unified Search across restaurants and dishes
+ * Used in: useQuery({ queryKey: ['search', query], queryFn: () => searchQueryFn(query) })
+ */
+export const searchQueryFn = async (
+  query: string,
+  limit = 20
+): Promise<SearchResponse> => {
+  const response = await API.get<SearchResponse>("/search", {
+    params: { q: query, limit },
+  });
+  return response.data;
+};
+
+// ─── Basket Types & Endpoints ───────────────────────────────────────────────
+
+export interface BasketItem {
+  _id?: string;
+  menuItemId?: string;
+  name: string;
+  subtitle?: string;
+  image: string;
+  price: number;
+  quantity: number;
+  selectedSize?: {
+    label: string;
+    price: number;
+  };
+  selectedExtras?: Array<{
+    label: string;
+    price: number;
+  }>;
+  selectedRemovals?: string[];
+  specialInstructions?: string;
+  itemTotal: number;
+}
+
+export interface Basket {
+  userId?: string;
+  restaurantId?: string;
+  restaurantName: string;
+  restaurantAddress: string;
+  restaurantLogo: string;
+  restaurantDeliveryTime: string;
+  currency: string;
+  items: BasketItem[];
+  subtotal: number;
+  deliveryFee: number;
+  serviceFee: number;
+  freeDeliveryThreshold: number;
+  includeCutlery: boolean;
+  promoCode?: string;
+  discount: number;
+  orderNotes?: string;
+  allergyReminder?: string;
+  total: number;
+}
+
+export interface BasketResponse {
+  success: boolean;
+  basket: Basket;
+}
+
+export const fetchBasketQueryFn = async (): Promise<BasketResponse> => {
+  const response = await API.get<BasketResponse>("/basket");
+  return response.data;
+};
+
+export const addBasketItemMutationFn = async (
+  itemData: Partial<BasketItem>
+): Promise<BasketResponse> => {
+  const response = await API.post<BasketResponse>("/basket/items", itemData);
+  return response.data;
+};
+
+export const updateBasketItemQuantityMutationFn = async ({
+  itemId,
+  quantity,
+}: {
+  itemId: string;
+  quantity: number;
+}): Promise<BasketResponse> => {
+  const response = await API.patch<BasketResponse>(`/basket/items/${itemId}`, {
+    quantity,
+  });
+  return response.data;
+};
+
+export const removeBasketItemMutationFn = async (
+  itemId: string
+): Promise<BasketResponse> => {
+  const response = await API.delete<BasketResponse>(`/basket/items/${itemId}`);
+  return response.data;
+};
+
+export const updateBasketPreferencesMutationFn = async (
+  prefs: {
+    includeCutlery?: boolean;
+    promoCode?: string;
+    orderNotes?: string;
+    allergyReminder?: string;
+  }
+): Promise<BasketResponse> => {
+  const response = await API.patch<BasketResponse>("/basket/preferences", prefs);
+  return response.data;
+};
+
+export const clearBasketMutationFn = async (): Promise<BasketResponse> => {
+  const response = await API.delete<BasketResponse>("/basket");
+  return response.data;
+};
+
+
+
 

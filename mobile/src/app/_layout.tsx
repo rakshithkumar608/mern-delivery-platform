@@ -31,6 +31,8 @@ const queryClient = new QueryClient({
   },
 });
 
+import { BasketProvider } from "@/context/basket-context";
+
 // Brand theme constants matching global.css semantic tokens
 const CHOWLY_THEME = {
   light: {
@@ -100,30 +102,32 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider value={navigationTheme}>
-            <View
-              className="flex-1 bg-background"
-              style={{ flex: 1, backgroundColor: activePalette.background }}
-            >
-              <StatusBar style={dark ? "light" : "dark"} />
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen
-                  name="dish/[id]"
-                  options={{
-                    presentation: "modal",
-                    animation: "slide_from_bottom",
-                  }}
+          <BasketProvider>
+            <ThemeProvider value={navigationTheme}>
+              <View
+                className="flex-1 bg-background"
+                style={{ flex: 1, backgroundColor: activePalette.background }}
+              >
+                <StatusBar style={dark ? "light" : "dark"} />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen
+                    name="dish/[id]"
+                    options={{
+                      presentation: "modal",
+                      animation: "slide_from_bottom",
+                    }}
+                  />
+                </Stack>
+                <AppToaster
+                  background={activePalette.card}
+                  border={activePalette.border}
+                  foreground={activePalette.foreground}
+                  muted={activePalette.muted}
+                  theme={toasterTheme}
                 />
-              </Stack>
-              <AppToaster
-                background={activePalette.card}
-                border={activePalette.border}
-                foreground={activePalette.foreground}
-                muted={activePalette.muted}
-                theme={toasterTheme}
-              />
-            </View>
-          </ThemeProvider>
+              </View>
+            </ThemeProvider>
+          </BasketProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

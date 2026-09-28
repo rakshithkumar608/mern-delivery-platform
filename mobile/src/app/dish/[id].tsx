@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUniwind } from "uniwind";
 
 import { MenuItem, fetchDishByIdQueryFn } from "@/lib/api";
+import { useBasket } from "@/context/basket-context";
 import { toast } from "@/lib/sonner";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -60,8 +61,9 @@ export default function DishDetailScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useUniwind();
   const isDark = theme === "dark";
-
   const dishId = id || "bi_4";
+  const { addItem } = useBasket();
+
 
   // Fetch dish from API
   const { data: dishData } = useQuery({
@@ -154,7 +156,23 @@ export default function DishDetailScreen() {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    await addItem({
+      menuItemId: dish._id || dish.id,
+      name: dish.name,
+      subtitle: currentSize.label,
+      price: unitPrice,
+      quantity,
+      image: dish.image,
+      selectedSize: currentSize,
+      selectedExtras: Object.entries(selectedExtras)
+        .filter(([, checked]) => checked)
+        .map(([idx]) => extras[Number(idx)]),
+      selectedRemovals: Object.entries(selectedRemovals)
+        .filter(([, checked]) => checked)
+        .map(([idx]) => removables[Number(idx)]),
+      specialInstructions: specialInstructions.trim(),
+    });
     toast.success(
       `Added ${quantity}× ${dish.name} (${currency}${totalPrice.toFixed(2)}) to your basket! 🍕`
     );

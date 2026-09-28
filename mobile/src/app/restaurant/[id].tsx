@@ -28,6 +28,7 @@ import { useUniwind } from "uniwind";
 import {
   ItemDetailSheet,
 } from "@/components/item-detail-sheet";
+import { useBasket } from "@/context/basket-context";
 import {
   MenuItem,
   Restaurant,
@@ -257,9 +258,8 @@ export default function RestaurantDetailScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllergensModal, setShowAllergensModal] = useState(false);
 
-  // Cart state
-  const [cartItemsCount, setCartItemsCount] = useState(3);
-  const [cartTotal, setCartTotal] = useState(9.28);
+  // Global Basket state
+  const { itemCount: cartItemsCount, total: cartTotal, addItem } = useBasket();
 
   // Item detail bottom sheet
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -312,9 +312,15 @@ export default function RestaurantDetailScreen() {
     }
   };
 
-  const handleAddItemDirectly = (dish: MenuItem) => {
-    setCartItemsCount((prev) => prev + 1);
-    setCartTotal((prev) => Number((prev + dish.price).toFixed(2)));
+  const handleAddItemDirectly = async (dish: MenuItem) => {
+    await addItem({
+      menuItemId: dish._id || dish.id,
+      name: dish.name,
+      subtitle: dish.category || "",
+      price: dish.price,
+      quantity: 1,
+      image: dish.image,
+    });
     toast.success(`Added ${dish.name} to basket! 🛒`);
   };
 
@@ -791,13 +797,7 @@ export default function RestaurantDetailScreen() {
           style={{ bottom: Math.max(insets.bottom + 10, 20) }}
         >
           <Pressable
-            onPress={() =>
-              toast.info(
-                `Your basket contains ${cartItemsCount} items (${currencySymbol}${cartTotal.toFixed(
-                  2
-                )}). Checkout flow ready!`
-              )
-            }
+            onPress={() => router.push("/basket")}
             className="flex-row items-center justify-between rounded-2xl px-4 py-3.5 shadow-xl active:scale-[0.99]"
             style={{
               backgroundColor: "#007A5A",
@@ -886,6 +886,24 @@ export default function RestaurantDetailScreen() {
         visible={showItemSheet}
         onClose={() => setShowItemSheet(false)}
         item={selectedItem}
+        currency={currencySymbol}
+        onAddToCart={async (customized) => {
+          await addItem({
+            menuItemId: customized.item._id || customized.item.id,
+            name: customized.item.name,
+            subtitle: customized.selectedSize.label,
+            price: customized.unitPrice,
+            quantity: customized.quantity,
+            image: customized.item.image,
+            selectedSize: customized.selectedSize,
+            selectedExtras: customized.selectedExtras,
+            selectedRemovals: customized.selectedRemovals,
+            specialInstructions: customized.specialInstructions,
+          });
+          toast.success(
+            `Added ${customized.quantity}× ${customized.item.name} (${currencySymbol}${customized.totalPrice.toFixed(2)}) to your basket! 🍕`
+          );
+        }}
       />
     </View>
   );

@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
   ViewToken,
 } from "react-native";
@@ -286,6 +287,8 @@ export default function HomeScreen() {
   const [selectedAddressId, setSelectedAddressId] = useState("home");
   const [deliveryLabel, setDeliveryLabel] = useState("Home");
   const [activeOfferIndex, setActiveOfferIndex] = useState(0);
+  const [homeSearchQuery, setHomeSearchQuery] = useState("");
+
 
   // TanStack Query: Fetch food categories from API
   const { data: categoriesResponse } = useQuery({
@@ -417,16 +420,49 @@ export default function HomeScreen() {
           </View>
         </Pressable>
 
-        {/* Search Pill → navigates to /search */}
-        <Pressable
-          onPress={() => router.push("/search")}
-          className="mt-4 h-11 flex-row items-center rounded-xl bg-white px-4 shadow-sm active:opacity-95"
-        >
-          <Feather name="search" size={18} color="#9ca3af" />
-          <Text className="ml-2.5 flex-1 text-sm text-gray-400 font-sans">
-            Search restaurants or dishes
-          </Text>
-        </Pressable>
+        {/* Search Input → navigates to /search when keyword is typed */}
+        <View className="mt-4 h-11 flex-row items-center rounded-xl bg-white px-3.5 shadow-sm">
+          <Pressable
+            onPress={() => router.push("/search")}
+            className="flex-row items-center justify-center p-1"
+            hitSlop={8}
+          >
+            <Feather name="search" size={18} color="#9ca3af" />
+          </Pressable>
+          <TextInput
+            value={homeSearchQuery}
+            onChangeText={(text) => {
+              setHomeSearchQuery(text);
+              if (text.trim().length > 0) {
+                router.push({
+                  pathname: "/search",
+                  params: { q: text },
+                });
+                setTimeout(() => setHomeSearchQuery(""), 350);
+              }
+            }}
+            onSubmitEditing={() => {
+              if (homeSearchQuery.trim().length > 0) {
+                router.push({
+                  pathname: "/search",
+                  params: { q: homeSearchQuery.trim() },
+                });
+                setHomeSearchQuery("");
+              } else {
+                router.push("/search");
+              }
+            }}
+            placeholder="Search restaurants or dishes"
+            placeholderTextColor="#9ca3af"
+            returnKeyType="search"
+            className="ml-2 flex-1 text-sm text-[#1a1a2e] font-sans h-full"
+          />
+          {homeSearchQuery.length > 0 && (
+            <Pressable onPress={() => setHomeSearchQuery("")} hitSlop={8} className="p-1">
+              <Feather name="x" size={15} color="#9ca3af" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {/* Concave curve overlay */}
