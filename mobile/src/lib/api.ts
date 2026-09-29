@@ -664,6 +664,17 @@ export const simulateWebhookSuccessMutationFn = async (
   return response.data;
 };
 
+export interface UserOrdersResponse {
+  success: boolean;
+  count: number;
+  orders: Order[];
+}
+
+export const fetchUserOrdersQueryFn = async (): Promise<UserOrdersResponse> => {
+  const response = await API.get<UserOrdersResponse>("/orders");
+  return response.data;
+};
+
 
 
 

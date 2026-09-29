@@ -909,13 +909,13 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      {/* ─── BOTTOM TAB BAR ─── */}
+      {/* ─── BOTTOM TAB BAR (5 Tabs) ─── */}
       <View
         className="absolute bottom-0 left-0 right-0 border-t border-border bg-background flex-row"
         style={{ paddingBottom: Math.max(insets.bottom, 8) }}
       >
         {/* Home Tab (Active) */}
-        <Pressable className="flex-1 items-center pt-2.5 pb-1">
+        <Pressable className="flex-1 items-center pt-2.5 pb-1 active:opacity-75">
           <Ionicons name="home" size={22} color="#00B37A" />
           <Text className="text-[11px] font-semibold text-[#00B37A] mt-0.5">
             Home
@@ -925,7 +925,7 @@ export default function HomeScreen() {
         {/* Search Tab */}
         <Pressable
           onPress={() => router.push("/search")}
-          className="flex-1 items-center pt-2.5 pb-1"
+          className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
           <Ionicons name="search-outline" size={22} color="#9ca3af" />
           <Text className="text-[11px] font-medium text-muted-foreground mt-0.5">
@@ -935,19 +935,30 @@ export default function HomeScreen() {
 
         {/* Orders Tab */}
         <Pressable
-          onPress={() => toast.info("Orders tab coming in Board 4")}
-          className="flex-1 items-center pt-2.5 pb-1"
+          onPress={() => router.push("/orders")}
+          className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
-          <Ionicons name="receipt-outline" size={22} color="#9ca3af" />
+          <Ionicons name="bag-handle-outline" size={22} color="#9ca3af" />
           <Text className="text-[11px] font-medium text-muted-foreground mt-0.5">
             Orders
           </Text>
         </Pressable>
 
+        {/* Favourites Tab */}
+        <Pressable
+          onPress={() => toast.info("Favourites feature coming soon! ❤️")}
+          className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
+        >
+          <Ionicons name="heart-outline" size={22} color="#9ca3af" />
+          <Text className="text-[11px] font-medium text-muted-foreground mt-0.5">
+            Favourites
+          </Text>
+        </Pressable>
+
         {/* Profile Tab */}
         <Pressable
-          onPress={() => toast.info("Profile tab coming in Board 4")}
-          className="flex-1 items-center pt-2.5 pb-1"
+          onPress={() => toast.info("Profile feature coming soon! 👤")}
+          className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
           <Ionicons name="person-outline" size={22} color="#9ca3af" />
           <Text className="text-[11px] font-medium text-muted-foreground mt-0.5">

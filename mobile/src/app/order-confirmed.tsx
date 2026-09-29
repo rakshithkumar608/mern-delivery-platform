@@ -52,7 +52,7 @@ export default function OrderConfirmedScreen() {
   }, [order]);
 
   const handleTrackOrder = () => {
-    toast.info("Real-time live tracking will be activated once courier picks up! 🛵");
+    router.push("/orders" as any);
   };
 
   const handleBackToHome = () => {
