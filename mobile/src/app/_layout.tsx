@@ -31,6 +31,8 @@ const queryClient = new QueryClient({
   },
 });
 
+import { StripeProvider } from "@stripe/stripe-react-native";
+
 import { BasketProvider } from "@/context/basket-context";
 
 // Brand theme constants matching global.css semantic tokens
@@ -102,32 +104,40 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <QueryClientProvider client={queryClient}>
-          <BasketProvider>
-            <ThemeProvider value={navigationTheme}>
-              <View
-                className="flex-1 bg-background"
-                style={{ flex: 1, backgroundColor: activePalette.background }}
-              >
-                <StatusBar style={dark ? "light" : "dark"} />
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen
-                    name="dish/[id]"
-                    options={{
-                      presentation: "modal",
-                      animation: "slide_from_bottom",
-                    }}
+          <StripeProvider
+            publishableKey={
+              process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+              "pk_test_mock_chowly_publishable_key"
+            }
+            merchantIdentifier="merchant.com.chowly"
+          >
+            <BasketProvider>
+              <ThemeProvider value={navigationTheme}>
+                <View
+                  className="flex-1 bg-background"
+                  style={{ flex: 1, backgroundColor: activePalette.background }}
+                >
+                  <StatusBar style={dark ? "light" : "dark"} />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen
+                      name="dish/[id]"
+                      options={{
+                        presentation: "modal",
+                        animation: "slide_from_bottom",
+                      }}
+                    />
+                  </Stack>
+                  <AppToaster
+                    background={activePalette.card}
+                    border={activePalette.border}
+                    foreground={activePalette.foreground}
+                    muted={activePalette.muted}
+                    theme={toasterTheme}
                   />
-                </Stack>
-                <AppToaster
-                  background={activePalette.card}
-                  border={activePalette.border}
-                  foreground={activePalette.foreground}
-                  muted={activePalette.muted}
-                  theme={toasterTheme}
-                />
-              </View>
-            </ThemeProvider>
-          </BasketProvider>
+                </View>
+              </ThemeProvider>
+            </BasketProvider>
+          </StripeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

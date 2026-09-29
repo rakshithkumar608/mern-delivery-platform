@@ -16,4 +16,34 @@ export const Env = {
   CLOUDINARY_CLOUD_NAME: getEnv("CLOUDINARY_CLOUD_NAME", ""),
   CLOUDINARY_API_KEY: getEnv("CLOUDINARY_API_KEY", ""),
   CLOUDINARY_API_SECRET: getEnv("CLOUDINARY_API_SECRET", ""),
+
+  // Stripe Configuration
+  STRIPE_SECRET_KEY: getEnv("STRIPE_SECRET_KEY", ""),
+  STRIPE_PUBLISHABLE_KEY: getEnv("STRIPE_PUBLISHABLE_KEY", ""),
+  STRIPE_WEBHOOK_SECRET: getEnv("STRIPE_WEBHOOK_SECRET", ""),
+};
+
+/**
+ * Validates Stripe configuration.
+ * Mock/placeholder keys are only permitted when NODE_ENV !== "production".
+ * In production, missing or mock keys abort startup immediately.
+ */
+export const validateStripeEnv = (): void => {
+  const isProd = Env.NODE_ENV === "production";
+  const hasRealSecret = Boolean(
+    Env.STRIPE_SECRET_KEY &&
+      !Env.STRIPE_SECRET_KEY.includes("mock") &&
+      Env.STRIPE_SECRET_KEY.startsWith("sk_")
+  );
+  const hasRealWebhook = Boolean(
+    Env.STRIPE_WEBHOOK_SECRET &&
+      !Env.STRIPE_WEBHOOK_SECRET.includes("mock") &&
+      Env.STRIPE_WEBHOOK_SECRET.startsWith("whsec_")
+  );
+
+  if (isProd && (!hasRealSecret || !hasRealWebhook)) {
+    throw new Error(
+      "FATAL: Valid STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are strictly required in production! Startup aborted."
+    );
+  }
 };

@@ -184,13 +184,21 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
   });
 
   const updateQuantity = async (itemId: string, quantity: number) => {
+    const targetId = String(itemId).trim().toLowerCase();
     setLocalBasket((prev) => {
       let items = [...prev.items];
       if (quantity <= 0) {
-        items = items.filter((i) => i._id !== itemId && i.name !== itemId);
+        items = items.filter(
+          (i) =>
+            String(i._id || "").toLowerCase() !== targetId &&
+            String(i.name || "").toLowerCase() !== targetId
+        );
       } else {
         items = items.map((i) => {
-          if (i._id === itemId || i.name === itemId) {
+          if (
+            String(i._id || "").toLowerCase() === targetId ||
+            String(i.name || "").toLowerCase() === targetId
+          ) {
             return {
               ...i,
               quantity,

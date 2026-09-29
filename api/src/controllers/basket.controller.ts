@@ -42,8 +42,9 @@ export class BasketController {
     if (!itemId) {
       throw new BadRequestException("Item ID is required");
     }
-    const { quantity } = req.body;
-    if (quantity === undefined || typeof quantity !== "number") {
+    const rawQuantity = req.body.quantity;
+    const quantity = Number(rawQuantity);
+    if (rawQuantity === undefined || rawQuantity === null || isNaN(quantity)) {
       throw new BadRequestException("Quantity number is required");
     }
     const basket = await basketService.updateItemQuantity(identifier, itemId, quantity);

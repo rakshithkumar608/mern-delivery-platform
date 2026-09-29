@@ -213,6 +213,9 @@ export class BasketService {
     itemId: string,
     quantity: number
   ): Promise<any> {
+    const cleanItemId = String(itemId).trim();
+    const decodedItemId = decodeURIComponent(cleanItemId).toLowerCase();
+
     try {
       let basket = await Basket.findOne({
         $or: [{ userId: identifier }, { sessionId: identifier }],
@@ -221,11 +224,15 @@ export class BasketService {
       if (basket) {
         if (quantity <= 0) {
           basket.items = basket.items.filter(
-            (i: any) => String(i._id) !== String(itemId) && String(i.name) !== String(itemId)
+            (i: any) =>
+              String(i._id) !== cleanItemId &&
+              String(i.name).toLowerCase() !== decodedItemId
           ) as any;
         } else {
           const item = basket.items.find(
-            (i: any) => String(i._id) !== String(itemId) || String(i.name) === String(itemId)
+            (i: any) =>
+              String(i._id) === cleanItemId ||
+              String(i.name).toLowerCase() === decodedItemId
           );
           if (item) {
             item.quantity = quantity;
@@ -243,11 +250,15 @@ export class BasketService {
     let inMem = memoryBasketStore.get(identifier) || JSON.parse(JSON.stringify(DEFAULT_BASKET_DATA));
     if (quantity <= 0) {
       inMem.items = inMem.items.filter(
-        (i: any) => String(i._id) !== String(itemId) && String(i.name) !== String(itemId)
+        (i: any) =>
+          String(i._id) !== cleanItemId &&
+          String(i.name).toLowerCase() !== decodedItemId
       );
     } else {
       const item = inMem.items.find(
-        (i: any) => String(i._id) === String(itemId) || String(i.name) === String(itemId)
+        (i: any) =>
+          String(i._id) === cleanItemId ||
+          String(i.name).toLowerCase() !== decodedItemId
       );
       if (item) {
         item.quantity = quantity;

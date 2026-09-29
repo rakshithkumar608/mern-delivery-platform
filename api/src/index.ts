@@ -5,8 +5,10 @@ import helmet from "helmet";
 import passport from "passport";
 
 import { connectDatabase, disconnectDatabase } from "./config/database.config";
-import { Env } from "./config/env.config";
+import { Env, validateStripeEnv } from "./config/env.config";
 import { configurePassport } from "./config/passport.config";
+import { paymentController } from "./controllers/payment.controller";
+import { asyncHandler } from "./middlewares/asyncHandler.middleware";
 import { errorHandler } from "./middlewares/errorHandler.middleware";
 import { apiLimiter } from "./middlewares/rateLimiter.middleware";
 import { routes } from "./routes/v1";
@@ -28,6 +30,13 @@ app.use(
 
 // ─── Static Assets (Category images, fallback icons) ───────────────────
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
+
+// ─── Stripe Webhook (MUST be mounted before global express.json parser) ───
+app.post(
+  "/api/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  asyncHandler(paymentController.handleWebhook)
+);
 
 // ─── Body parsing & Auth ─────────────────────────────────────────────
 app.use(express.json({ limit: "100kb" }));
@@ -67,6 +76,9 @@ app.use(errorHandler);
 // ─── Server lifecycle & Startup ──────────────────────────────────────
 const startServer = async () => {
   try {
+    // Validate production keys before starting
+    validateStripeEnv();
+
     // Connect to database before accepting incoming requests
     await connectDatabase();
 

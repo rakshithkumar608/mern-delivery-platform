@@ -545,6 +545,125 @@ export const clearBasketMutationFn = async (): Promise<BasketResponse> => {
   return response.data;
 };
 
+// ─── Order Types & Endpoints ───────────────────────────────────────────────
+
+export type OrderStatus =
+  | "placed"
+  | "accepted"
+  | "preparing"
+  | "ready"
+  | "picked_up"
+  | "on_the_way"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentStatus = "pending" | "succeeded" | "failed" | "cancelled";
+
+export interface OrderStatusHistoryItem {
+  status: OrderStatus;
+  title: string;
+  note?: string;
+  timestamp: string;
+}
+
+export interface Order {
+  _id: string;
+  orderNumber: string;
+  restaurantId: string;
+  restaurantName: string;
+  restaurantAddress: string;
+  items: BasketItem[];
+  deliveryAddress: {
+    label: string;
+    fullAddress: string;
+    contactPhone: string;
+    instructions?: string;
+  };
+  arrivalEstimate: string;
+  estimatedDeliveryTime: string;
+  formattedEta: string;
+  pricing: {
+    subtotal: number;
+    deliveryFee: number;
+    serviceFee: number;
+    discount: number;
+    total: number;
+    currency: string;
+  };
+  payment: {
+    method: "card";
+    status: PaymentStatus;
+    amountInPaise: number;
+    stripePaymentIntentId?: string;
+    stripeClientSecret?: string;
+    cardBrand?: string;
+    cardLast4?: string;
+  };
+  status: OrderStatus;
+  statusHistory: OrderStatusHistoryItem[];
+  includeCutlery: boolean;
+  orderNotes?: string;
+  createdAt: string;
+}
+
+export interface CreateCheckoutSessionPayload {
+  deliveryAddress?: {
+    label?: string;
+    fullAddress: string;
+    contactPhone: string;
+    instructions?: string;
+  };
+  contactPhone?: string;
+  deliveryInstructions?: string;
+}
+
+export interface CheckoutSessionData {
+  orderId: string;
+  orderNumber: string;
+  clientSecret: string;
+  publishableKey?: string;
+  amountInPaise: number;
+  amount: number;
+  currency: string;
+  arrivalEstimate: string;
+  estimatedDeliveryTime: string;
+  formattedEta: string;
+}
+
+export interface CheckoutSessionResponse {
+  success: boolean;
+  data: CheckoutSessionData;
+}
+
+export interface OrderResponse {
+  success: boolean;
+  order: Order;
+}
+
+export const createCheckoutSessionMutationFn = async (
+  payload: CreateCheckoutSessionPayload
+): Promise<CheckoutSessionResponse> => {
+  const response = await API.post<CheckoutSessionResponse>(
+    "/orders/checkout-session",
+    payload
+  );
+  return response.data;
+};
+
+export const fetchOrderByIdQueryFn = async (
+  orderId: string
+): Promise<OrderResponse> => {
+  const response = await API.get<OrderResponse>(`/orders/${orderId}`);
+  return response.data;
+};
+
+export const simulateWebhookSuccessMutationFn = async (
+  orderId: string
+): Promise<any> => {
+  const response = await API.post("/payments/simulate-webhook", { orderId });
+  return response.data;
+};
+
 
 
 

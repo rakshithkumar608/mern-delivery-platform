@@ -81,11 +81,7 @@ export default function BasketScreen() {
       toast.error("Your basket is empty. Please add items to proceed!");
       return;
     }
-    toast.success(
-      `Proceeding to checkout with ${basket.items.length} items (${currency}${total.toFixed(
-        2
-      )})! 💳`
-    );
+    router.push("/checkout" as any);
   };
 
   const handlePromoSubmit = async () => {
@@ -201,7 +197,7 @@ export default function BasketScreen() {
         ) : (
           <View className="pt-2">
             {basket.items.map((item, index) => {
-              const itemId = item._id || item.name;
+              const itemId = item._id ? String(item._id) : item.name;
               return (
                 <View
                   key={itemId || index}
@@ -236,14 +232,14 @@ export default function BasketScreen() {
                     <View className="flex-row items-center gap-3 mt-2">
                       <Pressable
                         onPress={() =>
-                          updateQuantity(String(itemId), item.quantity - 1)
+                          updateQuantity(itemId, item.quantity - 1)
                         }
-                        className="h-6 w-6 rounded-full border border-border items-center justify-center active:bg-muted"
-                        hitSlop={6}
+                        className="h-7 w-7 rounded-full border border-border items-center justify-center active:bg-muted"
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
                         <Feather
                           name="minus"
-                          size={13}
+                          size={14}
                           color={isDark ? "#f0f0f5" : "#1a1a2e"}
                         />
                       </Pressable>
@@ -254,14 +250,14 @@ export default function BasketScreen() {
 
                       <Pressable
                         onPress={() =>
-                          updateQuantity(String(itemId), item.quantity + 1)
+                          updateQuantity(itemId, item.quantity + 1)
                         }
-                        className="h-6 w-6 rounded-full border border-border items-center justify-center active:bg-muted"
-                        hitSlop={6}
+                        className="h-7 w-7 rounded-full border border-border items-center justify-center active:bg-muted"
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
                         <Feather
                           name="plus"
-                          size={13}
+                          size={14}
                           color={isDark ? "#f0f0f5" : "#1a1a2e"}
                         />
                       </Pressable>
@@ -436,10 +432,15 @@ export default function BasketScreen() {
           </View>
 
           {/* Progress Bar */}
-          <View className="h-1.5 w-full rounded-full bg-border overflow-hidden">
+          <View className="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
             <View
-              className="h-full rounded-full bg-[#006B5B]"
-              style={{ width: `${Math.round(freeDeliveryProgress * 100)}%` }}
+              className="h-full rounded-full bg-[#007A5A]"
+              style={{
+                width: `${Math.min(
+                  100,
+                  Math.max(0, Math.round((freeDeliveryProgress || 0) * 100))
+                )}%`,
+              }}
             />
           </View>
         </View>

@@ -188,7 +188,7 @@ export class RestaurantService {
     restaurant: IRestaurantDocument | any;
   }> {
     const isObjectId = mongoose.Types.ObjectId.isValid(id);
-    let item: IMenuItemDocument | null = null;
+    let item: IMenuItemDocument | any = null;
 
     if (isObjectId) {
       item = await MenuItem.findById(id).exec();
