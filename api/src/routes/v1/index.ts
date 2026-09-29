@@ -10,7 +10,7 @@ import { paymentRoutes } from "./payment.route";
 import { restaurantRoutes } from "./restaurant.route";
 import { searchRoutes } from "./search.route";
 
-export const routes = Router();
+export const  routes =  Router();  
 
 routes.use("/auth", authRoutes);
 routes.use("/addresses", addressRoutes);
