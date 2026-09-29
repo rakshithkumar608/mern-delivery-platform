@@ -105,10 +105,7 @@ export default function RootLayout() {
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <QueryClientProvider client={queryClient}>
           <StripeProvider
-            publishableKey={
-              process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-              "pk_test_mock_chowly_publishable_key"
-            }
+            publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
             merchantIdentifier="merchant.com.chowly"
           >
             <BasketProvider>

@@ -4,6 +4,7 @@ import { basketService } from "./basket.service";
 import { paymentService } from "./payment.service";
 import { BadRequestException, NotFoundException } from "../utils/app-error";
 import { logger } from "../utils/logger";
+import { Env } from "../config/env.config";
 
 export interface CreateOrderCheckoutPayload {
   deliveryAddress?: {
@@ -174,6 +175,7 @@ export class OrderService {
       orderId: String(order._id),
       orderNumber,
       clientSecret: paymentIntent.clientSecret,
+      publishableKey: Env.STRIPE_PUBLISHABLE_KEY,
       amountInPaise,
       amount: total,
       currency: "INR",

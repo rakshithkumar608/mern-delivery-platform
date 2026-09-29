@@ -1,5 +1,5 @@
 import { Feather, FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useStripe } from "@stripe/stripe-react-native";
+import { initStripe, useStripe } from "@stripe/stripe-react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -85,12 +85,28 @@ export default function CheckoutScreen() {
         deliveryInstructions: instructions,
       });
 
-      const { orderId, orderNumber, clientSecret } = sessionResponse.data;
+      const { orderId, orderNumber, clientSecret, publishableKey } = sessionResponse.data;
 
       // 2. Initialize and present Stripe Payment Sheet
       let paymentSucceeded = false;
 
       try {
+        const activeKey =
+          publishableKey ||
+          process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+          "";
+
+        if (activeKey) {
+          try {
+            await initStripe({
+              publishableKey: activeKey,
+              merchantIdentifier: "merchant.com.chowly",
+            });
+          } catch (initStripeErr) {
+            console.warn("initStripe warning:", initStripeErr);
+          }
+        }
+
         const { error: initError } = await initPaymentSheet({
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: "Chowly",
