@@ -243,8 +243,13 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
     }
   };
 
-  const handleTrackOrder = () => {
-    toast.info("🛵 Courier is on the way! Estimated arrival in 18–24 min.");
+  const handleTrackOrder = (orderId?: string) => {
+    const id = orderId || activeOrder.id;
+    router.push(`/order/track/${id}` as any);
+  };
+
+  const handleViewOrderDetails = (orderId: string) => {
+    router.push(`/order/${orderId}` as any);
   };
 
   const handleDiscover = () => {
@@ -292,7 +297,10 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
             Active order
           </Text>
 
-          <View className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center">
+          <Pressable
+            onPress={() => handleViewOrderDetails(activeOrder.id)}
+            className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center active:opacity-95"
+          >
             {/* Food Thumbnail */}
             <Image
               source={{ uri: activeOrder.image }}
@@ -329,8 +337,8 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
               </View>
 
               <Pressable
-                onPress={handleTrackOrder}
-                className="flex-row items-center active:opacity-70 mt-2"
+                onPress={() => handleTrackOrder(activeOrder.id)}
+                className="flex-row items-center active:opacity-70 mt-2 px-1 py-0.5"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Text className="text-xs font-semibold text-[#00B37A] mr-1">
@@ -339,7 +347,7 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
                 <Feather name="chevron-right" size={14} color={BRAND_TEAL} />
               </Pressable>
             </View>
-          </View>
+          </Pressable>
         </View>
 
         {/* ─── SECTION 2: PAST ORDERS (Flat list, skipping sub-buckets) ─── */}
@@ -350,9 +358,10 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
 
           <View className="gap-3">
             {pastOrdersList.map((item) => (
-              <View
+              <Pressable
                 key={item.id}
-                className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center"
+                onPress={() => handleViewOrderDetails(item.id)}
+                className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center active:opacity-90"
               >
                 {/* Food Thumbnail */}
                 <Image
@@ -399,7 +408,7 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
                     />
                   </Pressable>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         </View>

@@ -566,6 +566,18 @@ export interface OrderStatusHistoryItem {
   timestamp: string;
 }
 
+export interface DriverInfo {
+  id: string;
+  name: string;
+  role?: string;
+  phone: string;
+  avatar?: string;
+  rating: number;
+  totalRatings: number;
+  vehicleType?: string;
+  plateNumber?: string;
+}
+
 export interface Order {
   _id: string;
   orderNumber: string;
@@ -601,6 +613,7 @@ export interface Order {
   };
   status: OrderStatus;
   statusHistory: OrderStatusHistoryItem[];
+  driver?: DriverInfo | null;
   includeCutlery: boolean;
   orderNotes?: string;
   createdAt: string;

@@ -52,7 +52,8 @@ export default function OrderConfirmedScreen() {
   }, [order]);
 
   const handleTrackOrder = () => {
-    router.push("/orders" as any);
+    const targetId = orderId || displayOrderNumber || "CH-2481";
+    router.push(`/order/track/${targetId}` as any);
   };
 
   const handleBackToHome = () => {

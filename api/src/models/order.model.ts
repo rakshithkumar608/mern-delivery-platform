@@ -19,6 +19,18 @@ export interface IOrderStatusHistory {
   timestamp: Date;
 }
 
+export interface IDriverInfo {
+  id: string;
+  name: string;
+  role?: string;
+  phone: string;
+  avatar?: string;
+  rating: number;
+  totalRatings: number;
+  vehicleType?: string;
+  plateNumber?: string;
+}
+
 export interface IOrderItem {
   name: string;
   subtitle?: string;
@@ -73,6 +85,7 @@ export interface IOrder {
   };
   status: OrderStatus;
   statusHistory: IOrderStatusHistory[];
+  driver?: IDriverInfo;
   includeCutlery: boolean;
   orderNotes?: string;
   createdAt?: Date;
@@ -221,6 +234,17 @@ const orderSchema = new Schema<IOrderDocument>(
     statusHistory: {
       type: [statusHistorySchema],
       default: [],
+    },
+    driver: {
+      id: { type: String },
+      name: { type: String },
+      role: { type: String, default: "Your courier" },
+      phone: { type: String },
+      avatar: { type: String },
+      rating: { type: Number, default: 4.8 },
+      totalRatings: { type: Number, default: 320 },
+      vehicleType: { type: String, default: "Scooter" },
+      plateNumber: { type: String },
     },
     includeCutlery: {
       type: Boolean,
