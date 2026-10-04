@@ -34,7 +34,6 @@ export default function ProfileScreen() {
 
   // Modals state
   const [showAddressSheet, setShowAddressSheet] = useState(false);
-  const [showFavouritesModal, setShowFavouritesModal] = useState(false);
   const [showPaymentsModal, setShowPaymentsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -74,37 +73,6 @@ export default function ProfileScreen() {
       ]
     );
   };
-
-  const FAVOURITES = [
-    {
-      id: "fav-1",
-      name: "Mama Chow's Kitchen",
-      cuisine: "Asian Fusion • Dim Sum",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "fav-2",
-      name: "Bella Italia",
-      cuisine: "Italian • Neapolitan Pizza",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "fav-3",
-      name: "Bosco Pizza Co.",
-      cuisine: "Artisan Wood-fired Pizza",
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1573821663912-569905455b1c?w=500&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "fav-4",
-      name: "Green Bowl",
-      cuisine: "Healthy • Salads & Acai",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&auto=format&fit=crop&q=80",
-    },
-  ];
 
   return (
     <View className="flex-1 bg-[#F9FAFB] dark:bg-background">
@@ -169,7 +137,7 @@ export default function ProfileScreen() {
         >
           {/* Favourites */}
           <Pressable
-            onPress={() => setShowFavouritesModal(true)}
+            onPress={() => router.push("/favourites")}
             className="flex-row items-center justify-between px-5 py-4 active:bg-slate-50 dark:active:bg-slate-800/40"
             style={{ minHeight: 56 }}
           >
@@ -394,62 +362,6 @@ export default function ProfileScreen() {
         }}
       />
 
-      {/* ─── FAVOURITES MODAL ─── */}
-      <Modal
-        visible={showFavouritesModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowFavouritesModal(false)}
-      >
-        <View className="flex-1 bg-white dark:bg-background">
-          <View className="flex-row items-center justify-between p-5 border-b border-slate-100 dark:border-border">
-            <Text className="text-xl font-bold text-slate-900 dark:text-foreground">
-              Your Favourites (4)
-            </Text>
-            <Pressable
-              onPress={() => setShowFavouritesModal(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
-            >
-              <Feather name="x" size={18} color="#64748b" />
-            </Pressable>
-          </View>
-
-          <ScrollView className="flex-1 p-5">
-            {FAVOURITES.map((fav) => (
-              <Pressable
-                key={fav.id}
-                onPress={() => {
-                  setShowFavouritesModal(false);
-                  router.push("/home");
-                }}
-                className="flex-row items-center bg-white dark:bg-card border border-slate-200/80 dark:border-border rounded-2xl p-3.5 mb-3.5 shadow-xs"
-              >
-                <Image
-                  source={{ uri: fav.image }}
-                  style={{ width: 64, height: 64, borderRadius: 12 }}
-                  contentFit="cover"
-                />
-                <View className="flex-1 ml-3.5">
-                  <Text className="font-bold text-base text-slate-900 dark:text-foreground">
-                    {fav.name}
-                  </Text>
-                  <Text className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
-                    {fav.cuisine}
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                    <Ionicons name="star" size={13} color="#F59E0B" />
-                    <Text className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1">
-                      {fav.rating}
-                    </Text>
-                  </View>
-                </View>
-                <Ionicons name="heart" size={22} color="#EF4444" />
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
-
       {/* ─── PAYMENT METHODS MODAL ─── */}
       <Modal
         visible={showPaymentsModal}
@@ -457,16 +369,22 @@ export default function ProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowPaymentsModal(false)}
       >
-        <View className="flex-1 bg-white dark:bg-background">
-          <View className="flex-row items-center justify-between p-5 border-b border-slate-100 dark:border-border">
+        <View
+          style={{ paddingTop: Math.max(insets.top, 16) }}
+          className="flex-1 bg-white dark:bg-background"
+        >
+          <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-border">
             <Text className="text-xl font-bold text-slate-900 dark:text-foreground">
               Payment Methods
             </Text>
             <Pressable
               onPress={() => setShowPaymentsModal(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center active:bg-slate-200"
+              accessibilityLabel="Close Payment Methods"
+              accessibilityRole="button"
             >
-              <Feather name="x" size={18} color="#64748b" />
+              <Feather name="x" size={20} color={isDark ? "#ffffff" : "#0f172a"} />
             </Pressable>
           </View>
 
@@ -534,16 +452,22 @@ export default function ProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowNotificationsModal(false)}
       >
-        <View className="flex-1 bg-white dark:bg-background">
-          <View className="flex-row items-center justify-between p-5 border-b border-slate-100 dark:border-border">
+        <View
+          style={{ paddingTop: Math.max(insets.top, 16) }}
+          className="flex-1 bg-white dark:bg-background"
+        >
+          <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-border">
             <Text className="text-xl font-bold text-slate-900 dark:text-foreground">
               Notification Settings
             </Text>
             <Pressable
               onPress={() => setShowNotificationsModal(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center active:bg-slate-200"
+              accessibilityLabel="Close Notifications"
+              accessibilityRole="button"
             >
-              <Feather name="x" size={18} color="#64748b" />
+              <Feather name="x" size={20} color={isDark ? "#ffffff" : "#0f172a"} />
             </Pressable>
           </View>
 
@@ -609,16 +533,22 @@ export default function ProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowHelpModal(false)}
       >
-        <View className="flex-1 bg-white dark:bg-background">
-          <View className="flex-row items-center justify-between p-5 border-b border-slate-100 dark:border-border">
+        <View
+          style={{ paddingTop: Math.max(insets.top, 16) }}
+          className="flex-1 bg-white dark:bg-background"
+        >
+          <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-border">
             <Text className="text-xl font-bold text-slate-900 dark:text-foreground">
               Help & Support
             </Text>
             <Pressable
               onPress={() => setShowHelpModal(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center active:bg-slate-200"
+              accessibilityLabel="Close Help"
+              accessibilityRole="button"
             >
-              <Feather name="x" size={18} color="#64748b" />
+              <Feather name="x" size={20} color={isDark ? "#ffffff" : "#0f172a"} />
             </Pressable>
           </View>
 
@@ -672,16 +602,22 @@ export default function ProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAboutModal(false)}
       >
-        <View className="flex-1 bg-white dark:bg-background">
-          <View className="flex-row items-center justify-between p-5 border-b border-slate-100 dark:border-border">
+        <View
+          style={{ paddingTop: Math.max(insets.top, 16) }}
+          className="flex-1 bg-white dark:bg-background"
+        >
+          <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-border">
             <Text className="text-xl font-bold text-slate-900 dark:text-foreground">
               About Chowly
             </Text>
             <Pressable
               onPress={() => setShowAboutModal(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center active:bg-slate-200"
+              accessibilityLabel="Close About"
+              accessibilityRole="button"
             >
-              <Feather name="x" size={18} color="#64748b" />
+              <Feather name="x" size={20} color={isDark ? "#ffffff" : "#0f172a"} />
             </Pressable>
           </View>
 

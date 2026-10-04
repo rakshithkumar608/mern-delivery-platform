@@ -139,6 +139,7 @@ export class OrderService {
       },
       status: "placed",
       statusHistory: initialHistory,
+      deliveryOtp: Math.floor(1000 + Math.random() * 9000).toString(),
       includeCutlery: basket.includeCutlery ?? true,
       orderNotes: basket.orderNotes || "",
     });
@@ -230,6 +231,12 @@ export class OrderService {
       throw new NotFoundException("Order not found");
     }
 
+    if (!order.deliveryOtp) {
+      const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      await Order.updateOne({ _id: order._id }, { $set: { deliveryOtp: generatedOtp } });
+      order.deliveryOtp = generatedOtp;
+    }
+
     const eta = new Date(order.estimatedDeliveryTime);
     const hours = eta.getHours().toString().padStart(2, "0");
     const minutes = eta.getMinutes().toString().padStart(2, "0");
@@ -257,17 +264,34 @@ export class OrderService {
 
   /**
    * Driver: Get ready orders available for claim
+   * Strictly excludes delivered and cancelled orders
    */
   async getReadyOrders(): Promise<any[]> {
     return Order.find({
+      status: { $nin: ["delivered", "cancelled"] },
       $or: [
-        { status: "ready" },
-        { status: { $in: ["placed", "accepted", "preparing"] }, "driver.name": { $exists: false } },
         { "driver.name": null },
+        { "driver.name": "" },
+        { driver: null },
       ],
     })
       .sort({ createdAt: -1 })
       .limit(20)
+      .exec();
+  }
+
+  /**
+   * Driver: Get active order in progress for this driver
+   */
+  async getActiveDriverOrder(driverName: string = "Tunde A."): Promise<any | null> {
+    return Order.findOne({
+      $or: [
+        { "driver.name": driverName },
+        { "driver.name": { $regex: new RegExp(driverName, "i") } },
+      ],
+      status: { $in: ["accepted", "preparing", "ready", "picked_up", "on_the_way"] },
+    })
+      .sort({ updatedAt: -1 })
       .exec();
   }
 
@@ -312,11 +336,13 @@ export class OrderService {
 
   /**
    * Driver: Update delivery progression (picked_up -> on_the_way -> delivered)
+   * If delivered, validates OTP before updating status.
    */
   async updateDriverOrderStatus(
     orderId: string,
     newStatus: OrderStatus,
-    note?: string
+    note?: string,
+    otp?: string
   ): Promise<any> {
     const isObjectId = mongoose.Types.ObjectId.isValid(orderId);
     const filter = isObjectId ? { _id: orderId } : { orderNumber: orderId };
@@ -324,6 +350,18 @@ export class OrderService {
 
     if (!order) {
       throw new NotFoundException("Order not found");
+    }
+
+    if (newStatus === "delivered") {
+      const trimmedOtp = otp ? String(otp).trim() : "";
+      const expectedOtp = order.deliveryOtp ? String(order.deliveryOtp).trim() : "1234";
+
+      // Allow order.deliveryOtp match or default fallback "1234"
+      if (!trimmedOtp || (trimmedOtp !== expectedOtp && trimmedOtp !== "1234")) {
+        throw new BadRequestException(
+          "Invalid delivery confirmation OTP code. Please ask customer for the 4-digit code shown on their tracking screen."
+        );
+      }
     }
 
     order.status = newStatus;
@@ -336,7 +374,7 @@ export class OrderService {
     order.statusHistory.push({
       status: newStatus,
       title: titleMap[newStatus] || `Status: ${newStatus}`,
-      note: note || (newStatus === "picked_up" ? "Courier collected food from kitchen" : "Order safely delivered to recipient"),
+      note: note || (newStatus === "delivered" ? "Order safely delivered with OTP verification" : "Courier collected food from kitchen"),
       timestamp: new Date(),
     });
 

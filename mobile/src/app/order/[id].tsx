@@ -66,11 +66,15 @@ export default function OrderDetailsScreen() {
 
   const [receiptModalVisible, setReceiptModalVisible] = useState(false);
 
-  // Fetch real order from backend if valid mongo ID or order number
+  // Fetch real order from backend with live status polling
   const { data: orderData } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => fetchOrderByIdQueryFn(orderId),
     enabled: Boolean(orderId && orderId !== "GF-2048"),
+    refetchInterval: (query) => {
+      const status = query.state.data?.order?.status;
+      return status === "delivered" || status === "cancelled" ? false : 3000;
+    },
     retry: 1,
   });
 
@@ -84,13 +88,36 @@ export default function OrderDetailsScreen() {
   const restaurantImage =
     "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=80";
 
-  const orderStatus = order?.status || "on_the_way";
-  const displayStatus =
-    orderStatus === "delivered"
-      ? "Delivered"
-      : orderStatus === "cancelled"
-      ? "Cancelled"
-      : "On the way";
+  const orderStatus = order?.status || "placed";
+  const isDelivered = orderStatus === "delivered";
+  const isCancelled = orderStatus === "cancelled";
+
+  const getStatusLabel = (status?: string): string => {
+    switch (status) {
+      case "placed":
+        return "Order Confirmed";
+      case "accepted":
+        return "Order Accepted";
+      case "preparing":
+        return "Food is Being Prepared";
+      case "ready":
+        return "Ready for Pickup";
+      case "picked_up":
+        return "Food Collected by Driver";
+      case "on_the_way":
+        return "Out for Delivery";
+      case "delivered":
+        return "Delivered";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        return "Order Confirmed";
+    }
+  };
+
+  const displayStatus = getStatusLabel(orderStatus);
+  const deliveryOtp = order?.deliveryOtp || "4829";
+  const otpDigits = deliveryOtp.split("");
 
   const items = useMemo(() => {
     if (order?.items && order.items.length > 0) {
@@ -222,6 +249,63 @@ export default function OrderDetailsScreen() {
         <View className="my-2">
           <OrderStepper currentStatus={orderStatus} />
         </View>
+
+        {/* ─── DELIVERY CONFIRMATION PIN CARD ─── */}
+        {!isDelivered && !isCancelled && (
+          <View className="bg-emerald-50 dark:bg-emerald-950/40 border border-[#00B37A]/40 rounded-2xl p-4 my-2 shadow-xs">
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-2">
+                <View className="w-6 h-6 rounded-full bg-[#00B37A]/20 items-center justify-center">
+                  <Feather name="shield" size={13} color="#00B37A" />
+                </View>
+                <Text className="text-xs font-bold text-foreground uppercase tracking-wide">
+                  Delivery Confirmation PIN
+                </Text>
+              </View>
+              <Text className="text-[11px] text-muted-foreground font-medium">
+                Share with courier
+              </Text>
+            </View>
+
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                {otpDigits.map((digit, idx) => (
+                  <View
+                    key={idx}
+                    className="w-10 h-11 rounded-xl bg-white dark:bg-card border-2 border-[#00B37A] items-center justify-center shadow-xs"
+                  >
+                    <Text className="text-lg font-black text-[#00B37A]">
+                      {digit}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View className="flex-1 ml-3.5">
+                <Text className="text-[11px] text-muted-foreground leading-4">
+                  Share this 4-digit PIN with your driver upon arrival to complete delivery.
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {isDelivered && (
+          <View className="bg-[#007A5E] rounded-2xl p-4 my-2 flex-row items-center justify-between shadow-xs">
+            <View className="flex-row items-center flex-1 pr-3">
+              <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center mr-3">
+                <Feather name="check" size={22} color="#ffffff" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white font-extrabold text-base">
+                  Order Delivered! 🎉
+                </Text>
+                <Text className="text-emerald-100 text-xs mt-0.5">
+                  Verified with delivery confirmation PIN
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* ─── 2. RESTAURANT CARD ─── */}
         <View className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-xs flex-row items-center justify-between mt-3 mb-6">

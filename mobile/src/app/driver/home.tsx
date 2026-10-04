@@ -15,35 +15,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchReadyOrdersQueryFn, User } from "@/lib/api";
+import {
+  fetchActiveDriverOrderQueryFn,
+  fetchReadyOrdersQueryFn,
+  User,
+} from "@/lib/api";
 import { getUser, removeToken } from "@/features/auth/token-storage";
 import { toast } from "@/lib/sonner";
-
-// High-fidelity fallback sample orders matching _designs/v1/driver/driver-home-design.png
-const DEFAULT_READY_ORDERS = [
-  {
-    _id: "ready-order-1",
-    orderNumber: "CH-6401",
-    restaurantName: "Mama Chow's Kitchen",
-    restaurantAddress: "3 Hoe Street, Walthamstow",
-    distanceText: "0.8 km away",
-    dropoffArea: "Walthamstow",
-    image: "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500&auto=format&fit=crop&q=80",
-    driverFee: 6.40,
-    itemCount: 3,
-  },
-  {
-    _id: "ready-order-2",
-    orderNumber: "CH-5802",
-    restaurantName: "Bosco Pizza Co.",
-    restaurantAddress: "Old Street Roundabout, London",
-    distanceText: "1.4 km away",
-    dropoffArea: "Leyton",
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
-    driverFee: 5.80,
-    itemCount: 2,
-  },
-];
 
 export default function DriverHomeScreen() {
   const router = useRouter();
@@ -59,16 +37,31 @@ export default function DriverHomeScreen() {
     });
   }, []);
 
+  // Poll for ready orders
   const {
     data,
     isLoading,
     isRefetching,
-    refetch,
+    refetch: refetchReady,
   } = useQuery({
     queryKey: ["driver", "ready-orders"],
     queryFn: fetchReadyOrdersQueryFn,
     enabled: isOnline,
+    refetchInterval: isOnline ? 6000 : false,
   });
+
+  // Check if driver has an active delivery in progress
+  const {
+    data: activeData,
+    refetch: refetchActive,
+  } = useQuery({
+    queryKey: ["driver", "active-order-summary"],
+    queryFn: fetchActiveDriverOrderQueryFn,
+    enabled: isOnline,
+    refetchInterval: isOnline ? 4000 : false,
+  });
+
+  const activeDelivery = activeData?.order;
 
   const handleLogout = async () => {
     await removeToken();
@@ -89,15 +82,17 @@ export default function DriverHomeScreen() {
     }
   };
 
-  // Merge backend orders with mock orders if DB has fewer than 2
-  const apiOrders = data?.orders || [];
-  const displayOrders = apiOrders.length > 0 ? apiOrders : DEFAULT_READY_ORDERS;
+  // Strictly filter out any delivered or cancelled orders
+  const apiOrders = (data?.orders || []).filter(
+    (item: any) => item.status !== "delivered" && item.status !== "cancelled"
+  );
 
   const onRefresh = useCallback(() => {
     if (isOnline) {
-      refetch();
+      refetchReady();
+      refetchActive();
     }
-  }, [isOnline, refetch]);
+  }, [isOnline, refetchReady, refetchActive]);
 
   return (
     <View className="flex-1 bg-[#00A876]">
@@ -157,7 +152,7 @@ export default function DriverHomeScreen() {
           {driverName}
         </Text>
         <Text className="text-emerald-100 text-sm font-medium mt-1">
-          6 deliveries • £42.30 today
+          Shift active • Ready for dispatch
         </Text>
       </View>
 
@@ -177,10 +172,53 @@ export default function DriverHomeScreen() {
             />
           }
         >
+          {/* Active Delivery in Progress Banner */}
+          {activeDelivery && (
+            <View className="mb-6 bg-[#EBF7F2] border-2 border-[#00A876] rounded-2xl p-4 shadow-sm">
+              <View className="flex-row items-center justify-between mb-2">
+                <View className="flex-row items-center gap-1.5">
+                  <View className="w-2.5 h-2.5 rounded-full bg-[#00A876]" />
+                  <Text className="text-xs font-bold text-[#007A5E] uppercase tracking-wider">
+                    Delivery In Progress
+                  </Text>
+                </View>
+                <Text className="text-xs font-bold text-slate-700">
+                  {activeDelivery.orderNumber}
+                </Text>
+              </View>
+
+              <Text className="text-base font-bold text-slate-900 mb-0.5">
+                {activeDelivery.restaurantName}
+              </Text>
+              <Text className="text-xs text-slate-500 mb-1" numberOfLines={1}>
+                Drop-off: {activeDelivery.deliveryAddress?.fullAddress || "Customer Address"}
+              </Text>
+
+              {activeDelivery.items && activeDelivery.items.length > 0 && (
+                <View className="flex-row items-center mb-3">
+                  <Feather name="package" size={13} color="#007A5E" style={{ marginRight: 5 }} />
+                  <Text className="text-xs font-semibold text-emerald-800" numberOfLines={1}>
+                    {activeDelivery.items.map((it: any) => `${it.quantity || 1}x ${it.name}`).join(", ")}
+                  </Text>
+                </View>
+              )}
+
+              <Pressable
+                onPress={() => router.push(`/driver/active/${activeDelivery.orderNumber || activeDelivery._id}` as any)}
+                className="bg-[#007A5E] py-3 rounded-xl items-center justify-center flex-row gap-2 active:opacity-90 shadow-xs"
+              >
+                <Feather name="navigation" size={15} color="#ffffff" />
+                <Text className="text-white font-bold text-sm">
+                  Resume Active Delivery
+                </Text>
+              </Pressable>
+            </View>
+          )}
+
           {/* Section Title */}
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-xl font-bold text-slate-900 tracking-tight">
-              Ready orders
+              Ready orders ({apiOrders.length})
             </Text>
             {isLoading && isOnline && (
               <ActivityIndicator size="small" color="#00A876" />
@@ -207,9 +245,30 @@ export default function DriverHomeScreen() {
                 </Text>
               </Pressable>
             </View>
+          ) : apiOrders.length === 0 ? (
+            <View className="items-center justify-center py-12 px-6 bg-slate-50 rounded-2xl border border-slate-100">
+              <View className="w-14 h-14 rounded-full bg-emerald-100 items-center justify-center mb-3">
+                <Feather name="check-circle" size={26} color="#007A5E" />
+              </View>
+              <Text className="text-base font-bold text-slate-800 text-center mb-1">
+                No orders waiting for pickup
+              </Text>
+              <Text className="text-xs text-slate-500 text-center max-w-[250px] mb-4">
+                Once customer orders are confirmed by the kitchen, they will appear here to claim.
+              </Text>
+              <Pressable
+                onPress={() => onRefresh()}
+                className="flex-row items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 active:bg-slate-50"
+              >
+                <Feather name="refresh-cw" size={13} color="#007A5E" />
+                <Text className="text-xs font-semibold text-[#007A5E]">
+                  Refresh orders
+                </Text>
+              </Pressable>
+            </View>
           ) : (
             <View className="gap-4">
-              {displayOrders.map((item: any, index: number) => {
+              {apiOrders.map((item: any, index: number) => {
                 const orderId = item._id || item.orderNumber || `order-${index}`;
                 const restaurantName = item.restaurantName || "Restaurant";
                 const imageUri =
@@ -217,22 +276,15 @@ export default function DriverHomeScreen() {
                   item.items?.[0]?.image ||
                   "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500&auto=format&fit=crop&q=80";
                 
-                // Calculate display distance and dropoff area
                 const distanceText =
-                  item.distanceText ||
-                  (index === 0 ? "0.8 km away" : "1.4 km away");
+                  item.distanceText || `${(0.8 + index * 0.4).toFixed(1)} km away`;
                 const dropoffArea =
                   item.dropoffArea ||
                   item.deliveryAddress?.fullAddress?.split(",")?.[1]?.trim() ||
-                  (index === 0 ? "Walthamstow" : "Leyton");
+                  item.deliveryAddress?.label ||
+                  "Customer location";
                 
-                // Calculate driver fee: in mockup £6.40 and £5.80
-                const driverFee =
-                  item.driverFee !== undefined
-                    ? item.driverFee
-                    : index === 0
-                    ? 6.40
-                    : 5.80;
+                const driverFee = 6.40;
 
                 return (
                   <View
@@ -273,9 +325,19 @@ export default function DriverHomeScreen() {
                         </View>
 
                         {/* Drop-off Area */}
-                        <Text className="text-xs text-slate-500 font-normal mt-0.5">
-                          Drop-off {dropoffArea}
+                        <Text className="text-xs text-slate-500 font-normal mt-0.5" numberOfLines={1}>
+                          Drop-off: {dropoffArea}
                         </Text>
+
+                        {/* Items Summary */}
+                        {item.items && item.items.length > 0 && (
+                          <View className="flex-row items-center mt-1">
+                            <Feather name="package" size={11} color="#007A5E" style={{ marginRight: 4 }} />
+                            <Text className="text-[11px] font-semibold text-emerald-800" numberOfLines={1}>
+                              {item.items.map((it: any) => `${it.quantity || 1}x ${it.name}`).join(", ")}
+                            </Text>
+                          </View>
+                        )}
                       </View>
 
                       {/* Bottom Row: Payout & Claim Button */}

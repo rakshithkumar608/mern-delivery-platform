@@ -16,6 +16,9 @@ orderRoutes.get("/ready", asyncHandler(orderController.getReadyOrders));
 // Driver: delivery history
 orderRoutes.get("/driver/history", asyncHandler(orderController.getDriverHistory));
 
+// Driver: active order in progress
+orderRoutes.get("/driver/active", asyncHandler(orderController.getActiveDriverOrder));
+
 // Driver: claim order
 orderRoutes.post("/:id/claim", asyncHandler(orderController.claimOrder));
 

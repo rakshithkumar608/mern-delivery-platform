@@ -60,7 +60,7 @@ export default function OrdersScreen() {
 
         {/* Favourites Tab */}
         <Pressable
-          onPress={() => toast.info("Favourites feature coming soon! ❤️")}
+          onPress={() => router.push("/favourites")}
           className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
           <Ionicons name="heart-outline" size={22} color="#9CA3AF" />

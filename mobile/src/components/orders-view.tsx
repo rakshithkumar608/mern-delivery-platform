@@ -170,18 +170,8 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
       };
     }
 
-    // Default reference active order matching design
-    return {
-      id: "default_active_1",
-      orderNumber: "GF-2048",
-      restaurantName: "Bella Italia",
-      image:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=80",
-      status: "On the way",
-      eta: "18–24 min",
-      price: "£11.76",
-      isReal: false,
-    };
+    // When all orders are delivered or no active orders, return null so active section is hidden
+    return null;
   }, [userOrders]);
 
   // Combine delivered orders from DB with reference past orders
@@ -244,8 +234,10 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
   };
 
   const handleTrackOrder = (orderId?: string) => {
-    const id = orderId || activeOrder.id;
-    router.push(`/order/track/${id}` as any);
+    const id = orderId || activeOrder?.id;
+    if (id) {
+      router.push(`/order/track/${id}` as any);
+    }
   };
 
   const handleViewOrderDetails = (orderId: string) => {
@@ -291,64 +283,66 @@ export function OrdersView({ onDiscoverRestaurants }: OrdersViewProps) {
           />
         }
       >
-        {/* ─── SECTION 1: ACTIVE ORDER ─── */}
-        <View className="mt-2 mb-6">
-          <Text className="text-[15px] font-bold text-foreground mb-3">
-            Active order
-          </Text>
+        {/* ─── SECTION 1: ACTIVE ORDER (Only show if active order is present) ─── */}
+        {activeOrder && (
+          <View className="mt-2 mb-6">
+            <Text className="text-[15px] font-bold text-foreground mb-3">
+              Active order
+            </Text>
 
-          <Pressable
-            onPress={() => handleViewOrderDetails(activeOrder.id)}
-            className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center active:opacity-95"
-          >
-            {/* Food Thumbnail */}
-            <Image
-              source={{ uri: activeOrder.image }}
-              style={{ width: 68, height: 68, borderRadius: 12 }}
-              contentFit="cover"
-              transition={200}
-            />
+            <Pressable
+              onPress={() => handleViewOrderDetails(activeOrder.id)}
+              className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center active:opacity-95"
+            >
+              {/* Food Thumbnail */}
+              <Image
+                source={{ uri: activeOrder.image }}
+                style={{ width: 68, height: 68, borderRadius: 12 }}
+                contentFit="cover"
+                transition={200}
+              />
 
-            {/* Middle Details */}
-            <View className="flex-1 ml-3.5 justify-center pr-1">
-              <Text
-                className="text-base font-bold text-foreground"
-                numberOfLines={1}
-              >
-                {activeOrder.restaurantName}
-              </Text>
-              <Text className="text-xs text-muted-foreground mt-0.5">
-                {activeOrder.orderNumber}
-              </Text>
-              <Text className="text-xs font-semibold text-[#00B37A] mt-2">
-                {activeOrder.status}
-              </Text>
-            </View>
-
-            {/* Right Details & Action */}
-            <View className="items-end justify-between self-stretch py-0.5">
-              <View className="items-end">
-                <Text className="text-xs font-medium text-foreground">
-                  {activeOrder.eta}
+              {/* Middle Details */}
+              <View className="flex-1 ml-3.5 justify-center pr-1">
+                <Text
+                  className="text-base font-bold text-foreground"
+                  numberOfLines={1}
+                >
+                  {activeOrder.restaurantName}
                 </Text>
-                <Text className="text-sm font-bold text-foreground mt-0.5">
-                  {activeOrder.price}
+                <Text className="text-xs text-muted-foreground mt-0.5">
+                  {activeOrder.orderNumber}
+                </Text>
+                <Text className="text-xs font-semibold text-[#00B37A] mt-2">
+                  {activeOrder.status}
                 </Text>
               </View>
 
-              <Pressable
-                onPress={() => handleTrackOrder(activeOrder.id)}
-                className="flex-row items-center active:opacity-70 mt-2 px-1 py-0.5"
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text className="text-xs font-semibold text-[#00B37A] mr-1">
-                  Track order
-                </Text>
-                <Feather name="chevron-right" size={14} color={BRAND_TEAL} />
-              </Pressable>
-            </View>
-          </Pressable>
-        </View>
+              {/* Right Details & Action */}
+              <View className="items-end justify-between self-stretch py-0.5">
+                <View className="items-end">
+                  <Text className="text-xs font-medium text-foreground">
+                    {activeOrder.eta}
+                  </Text>
+                  <Text className="text-sm font-bold text-foreground mt-0.5">
+                    {activeOrder.price}
+                  </Text>
+                </View>
+
+                <Pressable
+                  onPress={() => handleTrackOrder(activeOrder.id)}
+                  className="flex-row items-center active:opacity-70 mt-2 px-1 py-0.5"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text className="text-xs font-semibold text-[#00B37A] mr-1">
+                    Track order
+                  </Text>
+                  <Feather name="chevron-right" size={14} color={BRAND_TEAL} />
+                </Pressable>
+              </View>
+            </Pressable>
+          </View>
+        )}
 
         {/* ─── SECTION 2: PAST ORDERS (Flat list, skipping sub-buckets) ─── */}
         <View className="mb-4">

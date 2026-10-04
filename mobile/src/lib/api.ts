@@ -614,6 +614,7 @@ export interface Order {
   status: OrderStatus;
   statusHistory: OrderStatusHistoryItem[];
   driver?: DriverInfo | null;
+  deliveryOtp?: string;
   includeCutlery: boolean;
   orderNotes?: string;
   createdAt: string;
@@ -702,20 +703,33 @@ export const updateDriverStatusMutationFn = async ({
   orderId,
   status,
   note,
+  otp,
 }: {
   orderId: string;
   status: string;
   note?: string;
+  otp?: string;
 }): Promise<OrderResponse> => {
   const response = await API.patch<OrderResponse>(`/orders/${orderId}/driver-status`, {
     status,
     note,
+    otp,
   });
   return response.data;
 };
 
 export const fetchDriverHistoryQueryFn = async (): Promise<UserOrdersResponse> => {
   const response = await API.get<UserOrdersResponse>("/orders/driver/history");
+  return response.data;
+};
+
+export interface ActiveDriverOrderResponse {
+  success: boolean;
+  order: Order | null;
+}
+
+export const fetchActiveDriverOrderQueryFn = async (): Promise<ActiveDriverOrderResponse> => {
+  const response = await API.get<ActiveDriverOrderResponse>("/orders/driver/active");
   return response.data;
 };
 

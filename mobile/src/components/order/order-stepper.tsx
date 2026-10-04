@@ -17,26 +17,26 @@ export const ORDER_STEPS: StepperStep[] = [
   {
     id: "confirmed",
     label: "Confirmed",
-    time: "9:41 AM",
+    time: "",
     statusMatch: ["placed", "accepted"],
   },
   {
     id: "preparing",
     label: "Preparing",
-    time: "9:46 AM",
+    time: "",
     statusMatch: ["preparing", "ready"],
   },
   {
     id: "picked_up",
     label: "Picked up",
-    time: "9:55 AM",
-    statusMatch: ["picked_up", "on_the_way"],
+    time: "",
+    statusMatch: ["picked_up"],
   },
   {
-    id: "nearby",
-    label: "Nearby",
+    id: "on_the_way",
+    label: "On the way",
     time: "",
-    statusMatch: [],
+    statusMatch: ["on_the_way"],
   },
   {
     id: "delivered",
@@ -53,7 +53,7 @@ interface OrderStepperProps {
 }
 
 export function OrderStepper({
-  currentStatus = "on_the_way",
+  currentStatus = "placed",
   customActiveIndex,
   stepTimes,
 }: OrderStepperProps) {
@@ -70,12 +70,13 @@ export function OrderStepper({
       case "ready":
         return 1;
       case "picked_up":
-      case "on_the_way":
         return 2;
+      case "on_the_way":
+        return 3;
       case "delivered":
         return 4;
       default:
-        return 2; // Default to "Picked up" as in the design reference
+        return 0;
     }
   }, [currentStatus, customActiveIndex]);
 
@@ -146,7 +147,7 @@ export function OrderStepper({
                         size={14}
                         color={BRAND_TEAL}
                       />
-                    ) : step.id === "nearby" ? (
+                    ) : step.id === "on_the_way" || step.id === "nearby" ? (
                       <MaterialCommunityIcons
                         name="moped"
                         size={15}

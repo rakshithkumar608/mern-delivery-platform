@@ -28,27 +28,33 @@ export default function DriverDeliveryDetailScreen() {
 
   const order = data?.order;
 
-  // Defaults matching _designs/v1/driver/delivery-detail-design.png
+  // Real order attributes with mock fallback only if completely missing
   const isSecondOrder = id === "ready-order-2" || id === "CH-5802";
   const restaurantName = order?.restaurantName || (isSecondOrder ? "Bosco Pizza Co." : "Mama Chow's Kitchen");
   const pickupAddress = order?.restaurantAddress || (isSecondOrder ? "Old Street Roundabout, London" : "3 Hoe Street");
   const dropoffAddress = order?.deliveryAddress?.fullAddress || (isSecondOrder ? "88 Upper Street, Islington, N1 0NP" : "14 Bramley Road, E17 6QT");
   
-  const itemCount = order?.items?.length || (isSecondOrder ? 2 : 3);
+  const items = order?.items && order.items.length > 0 ? order.items : [];
+  const itemCount = items.length > 0
+    ? items.reduce((sum, it) => sum + (it.quantity || 1), 0)
+    : (isSecondOrder ? 2 : 3);
+
   const baseFee = isSecondOrder ? 4.50 : 4.90;
   const distanceFee = isSecondOrder ? 1.30 : 1.50;
   const totalFee = isSecondOrder ? 5.80 : 6.40;
 
   const { mutate: claimDelivery, isPending: isClaiming } = useMutation({
-    mutationFn: () => claimOrderMutationFn(id || "CH-6401"),
-    onSuccess: () => {
+    mutationFn: () => claimOrderMutationFn(order?.orderNumber || order?._id || id || "CH-6401"),
+    onSuccess: (res) => {
       toast.success("Delivery claimed successfully! 🛵");
-      router.replace(`/driver/active/${id || "CH-6401"}` as any);
+      const targetId = res?.order?.orderNumber || res?.order?._id || order?.orderNumber || order?._id || id;
+      router.replace(`/driver/active/${targetId}` as any);
     },
     onError: () => {
-      // Even if API fails or mock ID was used, gracefully proceed so the rider can test active flow
+      // Gracefully proceed if mock ID was used
       toast.success("Delivery claimed! 🛵");
-      router.replace(`/driver/active/${id || "CH-6401"}` as any);
+      const targetId = order?.orderNumber || order?._id || id || "CH-6401";
+      router.replace(`/driver/active/${targetId}` as any);
     },
   });
 
@@ -144,20 +150,41 @@ export default function DriverDeliveryDetailScreen() {
             {/* Breakdown & Items Card */}
             <View className="bg-white rounded-2xl border border-slate-200/90 p-5 mb-8 shadow-xs">
               {/* Item Header */}
-              <View className="flex-row items-center mb-4">
-                <Feather name="package" size={20} color="#007A5E" style={{ marginRight: 10 }} />
-                <Text className="text-base font-bold text-slate-900">
-                  {itemCount} items
-                </Text>
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center">
+                  <Feather name="package" size={20} color="#007A5E" style={{ marginRight: 10 }} />
+                  <Text className="text-base font-bold text-slate-900">
+                    {itemCount} {itemCount === 1 ? "item" : "items"}
+                  </Text>
+                </View>
+                {order?.orderNumber && (
+                  <Text className="text-xs font-bold text-[#007A5E] bg-emerald-50 px-2.5 py-1 rounded-full">
+                    Order #{order.orderNumber}
+                  </Text>
+                )}
               </View>
 
-              {/* Items List preview if available */}
-              {order?.items && order.items.length > 0 && (
-                <View className="mb-4 pt-1">
-                  {order.items.map((item, idx) => (
-                    <Text key={idx} className="text-xs text-slate-500 mb-1">
-                      • {item.quantity}x {item.name}
-                    </Text>
+              {/* Items List preview */}
+              {items.length > 0 && (
+                <View className="mb-4 pt-1 gap-2 border-b border-slate-100 pb-3">
+                  {items.map((item: any, idx: number) => (
+                    <View key={idx} className="flex-row items-start justify-between">
+                      <View className="flex-1 pr-2">
+                        <Text className="text-sm font-semibold text-slate-800">
+                          {item.quantity || 1}x {item.name}
+                        </Text>
+                        {item.subtitle && (
+                          <Text className="text-xs text-slate-500 mt-0.5">
+                            {item.subtitle}
+                          </Text>
+                        )}
+                      </View>
+                      {item.itemTotal || item.price ? (
+                        <Text className="text-xs font-semibold text-slate-600">
+                          £{Number(item.itemTotal || item.price).toFixed(2)}
+                        </Text>
+                      ) : null}
+                    </View>
                   ))}
                 </View>
               )}

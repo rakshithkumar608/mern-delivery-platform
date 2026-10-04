@@ -97,6 +97,7 @@ export class OrderController {
       phone: user.phone || "+44 7700 900111",
       avatar: user.avatar,
     } : undefined;
+    
 
     const order = await orderService.claimOrder(orderId, driverData);
     res.status(HttpStatus.OK).json({
@@ -109,7 +110,7 @@ export class OrderController {
   updateDriverStatus = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const orderId = Array.isArray(id) ? id[0] : id;
-    const { status, note } = req.body;
+    const { status, note, otp } = req.body;
 
     if (!orderId) {
       throw new BadRequestException("Order ID is required");
@@ -118,11 +119,21 @@ export class OrderController {
       throw new BadRequestException("Status is required");
     }
 
-    const order = await orderService.updateDriverOrderStatus(orderId, status, note);
+    const order = await orderService.updateDriverOrderStatus(orderId, status, note, otp);
     res.status(HttpStatus.OK).json({
       success: true,
       message: `Delivery updated to ${status}`,
       order,
+    });
+  };
+
+  getActiveDriverOrder = async (req: Request, res: Response): Promise<void> => {
+    const user = (req as any).user;
+    const driverName = user?.name || "Tunde A.";
+    const activeOrder = await orderService.getActiveDriverOrder(driverName);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      order: activeOrder,
     });
   };
 

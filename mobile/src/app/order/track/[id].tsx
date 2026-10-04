@@ -35,15 +35,22 @@ export default function OrderTrackingScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const orderId = id || "GF-2048";
 
-  // Fetch real order from backend if available
+  // Fetch real order from backend if available with live status polling
   const { data: orderData } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => fetchOrderByIdQueryFn(orderId),
     enabled: Boolean(orderId && orderId !== "GF-2048"),
+    refetchInterval: (query) => {
+      const status = query.state.data?.order?.status;
+      return status === "delivered" || status === "cancelled" ? false : 3000;
+    },
     retry: 1,
   });
 
   const order = orderData?.order;
+  const isDelivered = order?.status === "delivered";
+  const deliveryOtp = order?.deliveryOtp || "4829";
+  const otpDigits = deliveryOtp.split("");
 
   // Unified display data matching design
   const displayOrderNumber = order?.orderNumber || "GF-2048";
@@ -128,6 +135,31 @@ export default function OrderTrackingScreen() {
     );
   };
 
+  const getHeaderTitle = (status?: string): string => {
+    switch (status) {
+      case "placed":
+        return "Order Confirmed";
+      case "accepted":
+        return "Courier Assigned";
+      case "preparing":
+        return "Kitchen Preparing Food";
+      case "ready":
+        return "Ready for Courier";
+      case "picked_up":
+        return "Courier Picked Up Food";
+      case "on_the_way":
+        return "Order on the way";
+      case "delivered":
+        return "Order Delivered! 🎉";
+      case "cancelled":
+        return "Order Cancelled";
+      default:
+        return "Order in Progress";
+    }
+  };
+
+  const headerTitle = getHeaderTitle(order?.status);
+
   return (
     <View className="flex-1 bg-background">
       <StatusBar style={isDark ? "light" : "dark"} />
@@ -173,29 +205,29 @@ export default function OrderTrackingScreen() {
         {/* Header Titles */}
         <View className="items-center mt-1">
           <Text className="text-xl font-extrabold text-foreground tracking-tight">
-            Order on the way
+            {headerTitle}
           </Text>
           <Text className="text-xs text-muted-foreground font-semibold mt-0.5">
             {displayOrderNumber}
           </Text>
         </View>
 
-        {/* ETA Highlight */}
+        {/* ETA or Delivered Banner */}
         <View className="items-center mt-2.5 mb-1">
           <Text className="text-xs text-muted-foreground font-medium">
-            Arrives in
+            {isDelivered ? "Status" : "Arrives in"}
           </Text>
           <Text
-            className="text-3xl font-extrabold tracking-tight mt-0.5"
+            className="text-2xl font-extrabold tracking-tight mt-0.5"
             style={{ color: BRAND_TEAL }}
           >
-            {formattedEta}
+            {isDelivered ? "Delivered at your door" : formattedEta}
           </Text>
         </View>
 
         {/* 5-Step Status Stepper */}
         <View className="mt-2 mb-1">
-          <OrderStepper currentStatus={order?.status || "on_the_way"} />
+          <OrderStepper currentStatus={order?.status || "placed"} />
         </View>
       </View>
 
@@ -215,6 +247,66 @@ export default function OrderTrackingScreen() {
         className="px-5 pt-3 bg-background border-t border-border/50 gap-2.5"
         style={{ paddingBottom: Math.max(insets.bottom, 14) }}
       >
+        {/* ── DELIVERY CONFIRMATION PIN CARD ── */}
+        {!isDelivered ? (
+          <View className="bg-emerald-50 dark:bg-emerald-950/40 border border-[#00B37A]/40 rounded-2xl p-3.5 shadow-xs">
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-2">
+                <View className="w-6 h-6 rounded-full bg-[#00B37A]/20 items-center justify-center">
+                  <Feather name="shield" size={13} color="#00B37A" />
+                </View>
+                <Text className="text-xs font-bold text-foreground uppercase tracking-wide">
+                  Delivery Confirmation PIN
+                </Text>
+              </View>
+              <Text className="text-[11px] text-muted-foreground font-medium">
+                Share with courier
+              </Text>
+            </View>
+
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                {otpDigits.map((digit, idx) => (
+                  <View
+                    key={idx}
+                    className="w-10 h-11 rounded-xl bg-white dark:bg-card border-2 border-[#00B37A] items-center justify-center shadow-xs"
+                  >
+                    <Text className="text-lg font-black text-[#00B37A]">
+                      {digit}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View className="flex-1 ml-3.5">
+                <Text className="text-[11px] text-muted-foreground leading-4">
+                  Share this 4-digit PIN with your driver upon arrival to complete delivery.
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View className="bg-[#007A5E] rounded-2xl p-4 flex-row items-center justify-between shadow-xs">
+            <View className="flex-row items-center flex-1 pr-3">
+              <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center mr-3">
+                <Feather name="check" size={22} color="#ffffff" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white font-extrabold text-base">
+                  Delivered! 🎉
+                </Text>
+                <Text className="text-emerald-100 text-xs mt-0.5">
+                  Verified with delivery confirmation PIN
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={() => router.replace("/orders")}
+              className="bg-white px-3.5 py-2 rounded-xl active:bg-emerald-50"
+            >
+              <Text className="text-[#007A5E] font-bold text-xs">View Orders</Text>
+            </Pressable>
+          </View>
+        )}
         {/* ── COURIER CARD OR NOT ASSIGNED STATE ── */}
         {driverAssigned && courier ? (
           <View className="bg-card rounded-2xl p-3.5 border border-border/70 shadow-sm flex-row items-center justify-between">

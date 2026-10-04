@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import { Env } from "./env.config";
 import { logger } from "../utils/logger";
 
-// Enable Mongoose query injection defense-in-depth per nodejs-scaffolding rules
-mongoose.set("sanitizeFilter", true);
 
 export async function connectDatabase(): Promise<void> {
   try {

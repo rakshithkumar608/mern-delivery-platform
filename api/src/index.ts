@@ -18,17 +18,17 @@ import path from "path";
 
 const app = express();
 
-// ─── Passport Strategy Configuration ─────────────────────────────────
+//  Passport Strategy Configuration 
 configurePassport();
 
-// ─── Security ────────────────────────────────────────────────────────
+// Security 
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
-// ─── Static Assets (Category images, fallback icons) ───────────────────
+// ─── Static Assets (Category images, fallback icons) 
 app.use("/assets", express.static(path.join(__dirname, "../assets")));
 
 // ─── Stripe Webhook (MUST be mounted before global express.json parser) ───
@@ -38,13 +38,13 @@ app.post(
   asyncHandler(paymentController.handleWebhook)
 );
 
-// ─── Body parsing & Auth ─────────────────────────────────────────────
+//  Body parsing & Auth 
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// ─── CORS ────────────────────────────────────────────────────────────
+//  CORS 
 const corsOrigin = process.env.CORS_ORIGIN;
 if (corsOrigin) {
   const allowedOrigins = corsOrigin.split(",").map((origin) => origin.trim());
@@ -62,18 +62,18 @@ if (corsOrigin) {
   );
 }
 
-// ─── Health check (outside API versioning, not rate-limited) ─────────
+//  Health check (outside API versioning, not rate-limited) 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// ─── API routes ──────────────────────────────────────────────────────
+//  API routes 
 app.use("/api/v1", apiLimiter, routes);
 
-// ─── Error handling (must be last) ───────────────────────────────────
+// Error handling (must be last) 
 app.use(errorHandler);
 
-// ─── Server lifecycle & Startup ──────────────────────────────────────
+//  Server lifecycle & Startup 
 const startServer = async () => {
   try {
     // Validate production keys before starting
@@ -82,11 +82,11 @@ const startServer = async () => {
     // Connect to database before accepting incoming requests
     await connectDatabase();
 
-    const server = app.listen(Env.PORT, () => {
-      logger.info("API listening", { port: Env.PORT });
+    const server = app.listen(Number(Env.PORT), "0.0.0.0", () => {
+      logger.info("API listening", { port: Env.PORT, host: "0.0.0.0" });
     });
 
-    // ─── Graceful shutdown ───────────────────────────────────────────
+    //  Graceful shutdown 
     const shutdownSignals: NodeJS.Signals[] = ["SIGTERM", "SIGINT"];
     let shuttingDown = false;
 

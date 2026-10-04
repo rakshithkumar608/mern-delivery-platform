@@ -86,6 +86,7 @@ export interface IOrder {
   status: OrderStatus;
   statusHistory: IOrderStatusHistory[];
   driver?: IDriverInfo;
+  deliveryOtp?: string;
   includeCutlery: boolean;
   orderNotes?: string;
   createdAt?: Date;
@@ -245,6 +246,10 @@ const orderSchema = new Schema<IOrderDocument>(
       totalRatings: { type: Number, default: 320 },
       vehicleType: { type: String, default: "Scooter" },
       plateNumber: { type: String },
+    },
+    deliveryOtp: {
+      type: String,
+      index: true,
     },
     includeCutlery: {
       type: Boolean,
