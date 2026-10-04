@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -43,11 +43,15 @@ export default function SearchScreen() {
     "Burger",
   ]);
 
-  // Sync route param changes (e.g. user typed on home page)
+  const prevQRef = useRef(q);
   useEffect(() => {
-    if (q && q !== query) {
-      setQuery(q);
-      setDebouncedQuery(q);
+    if (q && q !== prevQRef.current) {
+      prevQRef.current = q;
+      const t = setTimeout(() => {
+        setQuery(q);
+        setDebouncedQuery(q);
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [q]);
 

@@ -34,6 +34,8 @@ export default function OrderConfirmedScreen() {
   const displayOrderNumber =
     order?.orderNumber || paramOrderNumber || "CH-2481";
 
+  const [fallbackEta] = React.useState(() => new Date(Date.now() + 30 * 60 * 1000));
+
   // Calculate arrival time string (e.g. "18:40")
   const formattedEta = React.useMemo(() => {
     if (order?.formattedEta) return order.formattedEta;
@@ -44,12 +46,11 @@ export default function OrderConfirmedScreen() {
         .toString()
         .padStart(2, "0")}`;
     }
-    const defaultEta = new Date(Date.now() + 30 * 60 * 1000);
-    return `${defaultEta.getHours().toString().padStart(2, "0")}:${defaultEta
+    return `${fallbackEta.getHours().toString().padStart(2, "0")}:${fallbackEta
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
-  }, [order]);
+  }, [order, fallbackEta]);
 
   const handleTrackOrder = () => {
     const targetId = orderId || displayOrderNumber || "CH-2481";

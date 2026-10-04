@@ -254,6 +254,110 @@ export class OrderService {
       .sort({ createdAt: -1 })
       .exec();
   }
+
+  /**
+   * Driver: Get ready orders available for claim
+   */
+  async getReadyOrders(): Promise<any[]> {
+    return Order.find({
+      $or: [
+        { status: "ready" },
+        { status: { $in: ["placed", "accepted", "preparing"] }, "driver.name": { $exists: false } },
+        { "driver.name": null },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .exec();
+  }
+
+  /**
+   * Driver: Claim an order
+   */
+  async claimOrder(orderId: string, driverData?: any): Promise<any> {
+    const isObjectId = mongoose.Types.ObjectId.isValid(orderId);
+    const filter = isObjectId ? { _id: orderId } : { orderNumber: orderId };
+    const order = await Order.findOne(filter);
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    order.driver = {
+      id: driverData?.id || driverData?._id || "driver-tunde",
+      name: driverData?.name || "Tunde A.",
+      role: "Your courier",
+      phone: driverData?.phone || "+44 7700 900111",
+      avatar: driverData?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+      rating: 4.9,
+      totalRatings: 184,
+      vehicleType: "Bicycle / Scooter",
+      plateNumber: "LD68 ABC",
+    };
+
+    if (order.status === "placed" || order.status === "ready") {
+      order.status = "accepted";
+    }
+
+    order.statusHistory.push({
+      status: "accepted",
+      title: "Courier Assigned",
+      note: `${order.driver.name} is on the way to collect your order`,
+      timestamp: new Date(),
+    });
+
+    await order.save();
+    return order;
+  }
+
+  /**
+   * Driver: Update delivery progression (picked_up -> on_the_way -> delivered)
+   */
+  async updateDriverOrderStatus(
+    orderId: string,
+    newStatus: OrderStatus,
+    note?: string
+  ): Promise<any> {
+    const isObjectId = mongoose.Types.ObjectId.isValid(orderId);
+    const filter = isObjectId ? { _id: orderId } : { orderNumber: orderId };
+    const order = await Order.findOne(filter);
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
+    }
+
+    order.status = newStatus;
+    const titleMap: Record<string, string> = {
+      picked_up: "Food Collected",
+      on_the_way: "Out for Delivery",
+      delivered: "Delivered",
+    };
+
+    order.statusHistory.push({
+      status: newStatus,
+      title: titleMap[newStatus] || `Status: ${newStatus}`,
+      note: note || (newStatus === "picked_up" ? "Courier collected food from kitchen" : "Order safely delivered to recipient"),
+      timestamp: new Date(),
+    });
+
+    await order.save();
+    return order;
+  }
+
+  /**
+   * Driver: Delivery history
+   */
+  async getDriverHistory(driverName: string = "Tunde A."): Promise<any[]> {
+    return Order.find({
+      $or: [
+        { "driver.name": driverName },
+        { status: "delivered" },
+      ],
+    })
+      .sort({ updatedAt: -1 })
+      .limit(30)
+      .exec();
+  }
 }
 
 export const orderService = new OrderService();

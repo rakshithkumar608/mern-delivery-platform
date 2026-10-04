@@ -688,6 +688,38 @@ export const fetchUserOrdersQueryFn = async (): Promise<UserOrdersResponse> => {
   return response.data;
 };
 
+export const fetchReadyOrdersQueryFn = async (): Promise<UserOrdersResponse> => {
+  const response = await API.get<UserOrdersResponse>("/orders/ready");
+  return response.data;
+};
+
+export const claimOrderMutationFn = async (orderId: string): Promise<OrderResponse> => {
+  const response = await API.post<OrderResponse>(`/orders/${orderId}/claim`);
+  return response.data;
+};
+
+export const updateDriverStatusMutationFn = async ({
+  orderId,
+  status,
+  note,
+}: {
+  orderId: string;
+  status: string;
+  note?: string;
+}): Promise<OrderResponse> => {
+  const response = await API.patch<OrderResponse>(`/orders/${orderId}/driver-status`, {
+    status,
+    note,
+  });
+  return response.data;
+};
+
+export const fetchDriverHistoryQueryFn = async (): Promise<UserOrdersResponse> => {
+  const response = await API.get<UserOrdersResponse>("/orders/driver/history");
+  return response.data;
+};
+
+
 
 
 

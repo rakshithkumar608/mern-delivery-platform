@@ -1,4 +1,4 @@
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -19,7 +19,6 @@ import { useUniwind } from "uniwind";
 import { AddressBottomSheet } from "@/components/address-bottom-sheet";
 import {
   Category,
-  Restaurant,
   fetchCategoriesQueryFn,
   fetchRestaurantsQueryFn,
   getImageUrl,
@@ -42,52 +41,28 @@ const LOCAL_CATEGORY_IMAGES: Record<string, any> = {
 
 const OFFERS = [
   {
-    id: "o1",
+    id: "banner_1",
     title: "20% off selected comfort favourites",
-    cta: "Order now →",
-    badge: "20%\nOFF",
     code: "CHOWLY20",
-    image:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80",
-    bg: "#FFF0E0",
-    ctaColor: "#E85D3A",
-    badgeBg: "#E53E3E",
+    image: require("../../assets/images/app-imgs/banner-1-full.png"),
+    categoryTarget: "burgers",
+    discountNote: "20% discount applied!",
   },
   {
-    id: "o2",
-    title: "Free delivery on your first 3 orders",
-    cta: "Claim now →",
-    badge: "FREE\nSHIP",
+    id: "banner_2",
+    title: "Free delivery this weekend on orders over $15",
     code: "FREESHIP",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&auto=format&fit=crop&q=80",
-    bg: "#E8F5E9",
-    ctaColor: "#2E7D32",
-    badgeBg: "#2E7D32",
+    image: require("../../assets/images/app-imgs/banner-2.png"),
+    categoryTarget: "jollof",
+    discountNote: "Free delivery unlocked!",
   },
   {
-    id: "o3",
-    title: "Buy 1 Get 1 on all sushi rolls",
-    cta: "Order now →",
-    badge: "BOGO\nDEAL",
-    code: "BOGOFEAST",
-    image:
-      "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&auto=format&fit=crop&q=80",
-    bg: "#EDE7F6",
-    ctaColor: "#7B1FA2",
-    badgeBg: "#7B1FA2",
-  },
-  {
-    id: "o4",
-    title: "30% off healthy bowls this week",
-    cta: "Explore →",
-    badge: "30%\nOFF",
-    code: "HEALTHY30",
-    image:
-      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&auto=format&fit=crop&q=80",
-    bg: "#FFF8E1",
-    ctaColor: "#F57F17",
-    badgeBg: "#EF6C00",
+    id: "banner_3",
+    title: "$5 off your next order - Use code CHOWLY5",
+    code: "CHOWLY5",
+    image: require("../../assets/images/app-imgs/banner-3.png"),
+    categoryTarget: "sushi",
+    discountNote: "$5 off discount applied!",
   },
 ];
 
@@ -303,7 +278,7 @@ export default function HomeScreen() {
       : FALLBACK_CATEGORIES;
 
   // TanStack Query: Fetch restaurants from API (with category filter)
-  const { data: restaurantsResponse, isLoading: isLoadingRestaurants } = useQuery({
+  const { data: restaurantsResponse } = useQuery({
     queryKey: ["restaurants", selectedCategory],
     queryFn: () =>
       fetchRestaurantsQueryFn(
@@ -359,41 +334,19 @@ export default function HomeScreen() {
     };
   }, [startAutoRotate]);
 
-  const onOfferViewableChange = useRef(
+  const onOfferViewableChange = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index != null) {
         setActiveOfferIndex(viewableItems[0].index);
       }
-    }
-  ).current;
+    },
+    []
+  );
 
   const handleOfferScroll = () => {
     // Reset auto-rotate timer when user manually scrolls
     if (timerRef.current) clearInterval(timerRef.current);
     startAutoRotate();
-  };
-
-  // Category icon renderer
-  const renderCategoryIcon = (
-    icon: string,
-    family: string,
-    isSelected: boolean
-  ) => {
-    const color = isSelected ? "#00B37A" : isDark ? "#6b7280" : "#374151";
-    const size = 22;
-    if (family === "feather") {
-      return <Feather name={icon as keyof typeof Feather.glyphMap} size={size} color={color} />;
-    }
-    if (family === "ionicons") {
-      return <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={size} color={color} />;
-    }
-    return (
-      <MaterialCommunityIcons
-        name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
-        size={size}
-        color={color}
-      />
-    );
   };
 
   return (
@@ -651,72 +604,28 @@ export default function HomeScreen() {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => {
-                    toast.success(`Code ${item.code} applied! 🎉`);
+                    toast.success(`Code ${item.code} applied! ${item.discountNote} 🎉`);
+                    if (item.categoryTarget) {
+                      setSelectedCategory(item.categoryTarget);
+                    }
                   }}
                   className="overflow-hidden rounded-2xl shadow-sm active:opacity-95"
                   style={{
                     width: OFFER_CARD_WIDTH,
                     marginRight: 12,
-                    backgroundColor: item.bg,
+                    backgroundColor: "transparent",
                   }}
                 >
-                  <View className="flex-row items-center p-4">
-                    {/* Left: Text */}
-                    <View className="flex-1 pr-3">
-                      <Text
-                        style={{ fontSize: 15, fontWeight: "700", color: "#1a1a2e", lineHeight: 20 }}
-                        numberOfLines={2}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        style={{ fontSize: 13, fontWeight: "600", color: item.ctaColor, marginTop: 8 }}
-                      >
-                        {item.cta}
-                      </Text>
-                    </View>
-
-                    {/* Right: Food Image + Discount Badge */}
-                    <View style={{ position: "relative" }}>
-                      <Image
-                        source={{ uri: item.image }}
-                        style={{ width: 90, height: 90, borderRadius: 16 }}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                      {/* Floating discount badge */}
-                      <View
-                        style={{
-                          position: "absolute",
-                          top: -6,
-                          right: -6,
-                          width: 42,
-                          height: 42,
-                          borderRadius: 21,
-                          backgroundColor: item.badgeBg,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.2,
-                          shadowRadius: 3,
-                          elevation: 4,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 9,
-                            fontWeight: "900",
-                            color: "#ffffff",
-                            textAlign: "center",
-                            lineHeight: 11,
-                          }}
-                        >
-                          {item.badge}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  <Image
+                    source={item.image}
+                    style={{
+                      width: OFFER_CARD_WIDTH,
+                      height: Math.round(OFFER_CARD_WIDTH / 2.98),
+                      borderRadius: 16,
+                    }}
+                    contentFit="cover"
+                    transition={200}
+                  />
                 </Pressable>
               )}
             />
@@ -957,7 +866,7 @@ export default function HomeScreen() {
 
         {/* Profile Tab */}
         <Pressable
-          onPress={() => toast.info("Profile feature coming soon! 👤")}
+          onPress={() => router.push("/profile")}
           className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
           <Ionicons name="person-outline" size={22} color="#9ca3af" />

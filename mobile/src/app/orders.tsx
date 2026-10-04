@@ -71,7 +71,7 @@ export default function OrdersScreen() {
 
         {/* Profile Tab */}
         <Pressable
-          onPress={() => toast.info("Profile feature coming soon! 👤")}
+          onPress={() => router.push("/profile")}
           className="flex-1 items-center pt-2.5 pb-1 active:opacity-75"
         >
           <Ionicons name="person-outline" size={22} color="#9CA3AF" />

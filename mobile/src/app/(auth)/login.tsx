@@ -37,7 +37,9 @@ export default function LoginScreen() {
       await setToken(data.token);
       await setUser(data.user);
       toast.success("Welcome back to Chowly! 🍔");
-      if (data.hasAddress) {
+      if (data.user.role === "rider" || (data.user as any).role === "driver") {
+        router.replace("/driver/home");
+      } else if (data.hasAddress) {
         router.replace("/home");
       } else {
         router.replace("/(auth)/add-address");
@@ -230,6 +232,29 @@ export default function LoginScreen() {
                 <Text className="text-sm font-bold text-[#00B37A]">
                   Sign Up
                 </Text>
+              </Pressable>
+            </View>
+
+            {/* Test Driver Quick Login Chip */}
+            <View className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/60">
+              <Pressable
+                onPress={() => {
+                  setEmail("driver@chowly.com");
+                  setPassword("Password123!");
+                  loginUser({ email: "driver@chowly.com", password: "Password123!" });
+                }}
+                disabled={isPending}
+                className="w-full flex-row items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 py-3.5 px-4 active:scale-[0.98]"
+              >
+                <Feather name="navigation" size={17} color="#00B37A" style={{ marginRight: 8 }} />
+                <View>
+                  <Text className="text-sm font-bold text-[#007A5E] dark:text-emerald-400">
+                    Test Driver Login (Tunde A.)
+                  </Text>
+                  <Text className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                    driver@chowly.com • Rider mode
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>

@@ -38,7 +38,11 @@ export default function SplashScreen() {
             const data = await getCurrentUserQueryFn();
             if (data?.user) {
               await setUser(data.user);
-              destination = data.hasAddress ? "/home" : "/(auth)/add-address";
+              if (data.user.role === "rider" || (data.user as any).role === "driver") {
+                destination = "/driver/home";
+              } else {
+                destination = data.hasAddress ? "/home" : "/(auth)/add-address";
+              }
             } else {
               await removeToken();
               destination = "/(auth)/login";
