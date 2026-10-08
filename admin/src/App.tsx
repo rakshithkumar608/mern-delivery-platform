@@ -5,8 +5,8 @@ interface DeliveryRule {
   driverBasePayout: number;
   driverPerKmRate: number;
   driverMinPayout: number;
-  customerBaseDeliveryFee: number;
-  freeDeliveryThreshold: number;
+  platformCommissionRate: number;
+  customerDeliveryFee: number;
   currency: string;
   updatedBy?: string;
   updatedAt?: string;
@@ -16,8 +16,8 @@ const DEFAULT_RULES: DeliveryRule = {
   driverBasePayout: 4.90,
   driverPerKmRate: 1.20,
   driverMinPayout: 5.00,
-  customerBaseDeliveryFee: 1.49,
-  freeDeliveryThreshold: 10.00,
+  platformCommissionRate: 15,
+  customerDeliveryFee: 1.49,
   currency: '£',
 };
 
@@ -31,7 +31,6 @@ export default function App() {
   
   // Interactive Simulator state
   const [simDistance, setSimDistance] = useState<number>(2.5);
-  const [simCartTotal, setSimCartTotal] = useState<number>(14.50);
 
   const fetchRules = async () => {
     setLoading(true);
@@ -44,8 +43,8 @@ export default function App() {
             driverBasePayout: Number(data.rules.driverBasePayout ?? 4.90),
             driverPerKmRate: Number(data.rules.driverPerKmRate ?? 1.20),
             driverMinPayout: Number(data.rules.driverMinPayout ?? 5.00),
-            customerBaseDeliveryFee: Number(data.rules.customerBaseDeliveryFee ?? 1.49),
-            freeDeliveryThreshold: Number(data.rules.freeDeliveryThreshold ?? 10.00),
+            platformCommissionRate: Number(data.rules.platformCommissionRate ?? 15),
+            customerDeliveryFee: Number(data.rules.customerDeliveryFee ?? data.rules.customerBaseDeliveryFee ?? 1.49),
             currency: data.rules.currency || '£',
             updatedBy: data.rules.updatedBy,
             updatedAt: data.rules.updatedAt,
@@ -77,7 +76,7 @@ export default function App() {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage({ text: 'Delivery and courier payout rules saved successfully! 🎉', type: 'success' });
+        setMessage({ text: 'Delivery and courier commission settings saved successfully! 🎉', type: 'success' });
         if (data.rules) setRules(data.rules);
       } else {
         setMessage({ text: data.message || 'Failed to save settings', type: 'error' });
@@ -96,10 +95,10 @@ export default function App() {
 
   // Simulator calculations
   const simDistanceFee = Number((simDistance * rules.driverPerKmRate).toFixed(2));
-  const simRawPayout = Number((rules.driverBasePayout + simDistanceFee).toFixed(2));
-  const simTotalPayout = Math.max(rules.driverMinPayout, simRawPayout);
-  const isCustomerFreeDelivery = simCartTotal >= rules.freeDeliveryThreshold;
-  const customerCharge = isCustomerFreeDelivery ? 0 : rules.customerBaseDeliveryFee;
+  const simGrossPayout = Number((rules.driverBasePayout + simDistanceFee).toFixed(2));
+  const simCommissionFee = Number((simGrossPayout * (rules.platformCommissionRate / 100)).toFixed(2));
+  const simNetRaw = Number((simGrossPayout - simCommissionFee).toFixed(2));
+  const simNetPayout = Math.max(rules.driverMinPayout, simNetRaw);
 
   return (
     <div style={{ padding: '28px 24px', maxWidth: '960px', margin: '0 auto', textAlign: 'left', fontFamily: 'system-ui, sans-serif' }}>
@@ -116,7 +115,7 @@ export default function App() {
             </span>
           </div>
           <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: '14px' }}>
-            Configure driver delivery payout rates (Base & Distance) and customer delivery fee policies.
+            Configure driver payout rates (Base & Distance), platform commission percentage, and customer delivery pricing.
           </p>
         </div>
 
@@ -148,22 +147,22 @@ export default function App() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
         {/* Main Settings Form */}
         <form onSubmit={handleSave}>
-          {/* Section 1: Courier Payout */}
+          {/* Section 1: Courier Rates & Commission */}
           <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
               <span style={{ fontSize: '18px' }}>🛵</span>
               <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>
-                Driver Earnings & Payout Rates
+                Driver Earnings & Commission Settings
               </h2>
             </div>
             <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b' }}>
-              These rates directly calculate what the rider earns for every completed delivery (shown as Base + Distance in the rider app).
+              Configure what the courier earns per trip and the platform commission percentage deducted.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Base Courier Payout ({rules.currency})
+                  Base Courier Pay ({rules.currency})
                 </label>
                 <input
                   type="number"
@@ -173,7 +172,7 @@ export default function App() {
                   onChange={(e) => setRules({ ...rules, driverBasePayout: parseFloat(e.target.value) || 0 })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
                 />
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Fixed rate per pickup</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Fixed base per pickup</span>
               </div>
 
               <div>
@@ -192,6 +191,22 @@ export default function App() {
               </div>
 
               <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#b45309', marginBottom: '6px' }}>
+                  Platform Commission Rate (%)
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="100"
+                  value={rules.platformCommissionRate}
+                  onChange={(e) => setRules({ ...rules, platformCommissionRate: parseFloat(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #f59e0b', fontSize: '15px', fontWeight: 700, color: '#b45309', boxSizing: 'border-box' }}
+                />
+                <span style={{ fontSize: '11px', color: '#b45309' }}>Commission retained by platform</span>
+              </div>
+
+              <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                   Minimum Guaranteed Payout ({rules.currency})
                 </label>
@@ -203,7 +218,37 @@ export default function App() {
                   onChange={(e) => setRules({ ...rules, driverMinPayout: parseFloat(e.target.value) || 0 })}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
                 />
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Floor threshold for short trips</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Guaranteed floor after commission</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Customer Delivery Fee */}
+          <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <span style={{ fontSize: '18px' }}>💳</span>
+              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>
+                Customer Delivery Pricing
+              </h2>
+            </div>
+            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b' }}>
+              Standard delivery fee charged to customers at checkout.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Customer Delivery Fee ({rules.currency})
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="0"
+                  value={rules.customerDeliveryFee}
+                  onChange={(e) => setRules({ ...rules, customerDeliveryFee: parseFloat(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
+                />
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Standard checkout delivery fee</span>
               </div>
 
               <div>
@@ -218,51 +263,6 @@ export default function App() {
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
                 />
                 <span style={{ fontSize: '11px', color: '#94a3b8' }}>e.g. £, $, or ₹</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Customer Delivery Fee */}
-          <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '18px' }}>💳</span>
-              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0f172a' }}>
-                Customer Delivery Pricing
-              </h2>
-            </div>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748b' }}>
-              What customers are charged at checkout. When the basket reaches the threshold, customer delivery becomes FREE.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Standard Delivery Fee ({rules.currency})
-                </label>
-                <input
-                  type="number"
-                  step="0.05"
-                  min="0"
-                  value={rules.customerBaseDeliveryFee}
-                  onChange={(e) => setRules({ ...rules, customerBaseDeliveryFee: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
-                />
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Charged when below threshold</span>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Free Delivery Basket Threshold ({rules.currency})
-                </label>
-                <input
-                  type="number"
-                  step="0.50"
-                  min="0"
-                  value={rules.freeDeliveryThreshold}
-                  onChange={(e) => setRules({ ...rules, freeDeliveryThreshold: parseFloat(e.target.value) || 0 })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 600, boxSizing: 'border-box' }}
-                />
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Subtotal needed for FREE delivery</span>
               </div>
             </div>
           </div>
@@ -312,10 +312,10 @@ export default function App() {
             ⚡ Live Payout Simulator
           </h3>
           <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#64748b' }}>
-            Preview how rider earnings and customer fees compute in real time.
+            Real-time breakdown of courier gross, platform commission, and net payout.
           </p>
 
-          <div style={{ marginBottom: '14px' }}>
+          <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
               <span>Trip Distance:</span>
               <span style={{ color: '#007A5E', fontWeight: 700 }}>{simDistance.toFixed(1)} km</span>
@@ -331,63 +331,50 @@ export default function App() {
             />
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-              <span>Customer Cart:</span>
-              <span style={{ color: '#0f172a', fontWeight: 700 }}>{rules.currency}{simCartTotal.toFixed(2)}</span>
-            </label>
-            <input
-              type="range"
-              min="3.0"
-              max="25.0"
-              step="0.5"
-              value={simCartTotal}
-              onChange={(e) => setSimCartTotal(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: '#00A876' }}
-            />
-          </div>
-
           {/* Rider Breakdown Card */}
-          <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#007A5E', marginBottom: '8px' }}>
-              Rider Sees (Payout):
+          <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#007A5E', marginBottom: '10px' }}>
+              Driver App Breakdown:
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
               <span>Base Pay</span>
               <span style={{ fontWeight: 600, color: '#0f172a' }}>{rules.currency}{rules.driverBasePayout.toFixed(2)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
               <span>Distance ({simDistance} km)</span>
               <span style={{ fontWeight: 600, color: '#0f172a' }}>{rules.currency}{simDistanceFee.toFixed(2)}</span>
             </div>
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-              <span>Total Rider Earns</span>
-              <span style={{ color: '#007A5E', fontSize: '16px' }}>{rules.currency}{simTotalPayout.toFixed(2)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>
+              <span>Gross Earnings</span>
+              <span>{rules.currency}{simGrossPayout.toFixed(2)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#b45309', marginBottom: '8px' }}>
+              <span>Platform Comm. ({rules.platformCommissionRate}%)</span>
+              <span style={{ fontWeight: 600 }}>-{rules.currency}{simCommissionFee.toFixed(2)}</span>
+            </div>
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+              <span>Net Rider Payout</span>
+              <span style={{ color: '#007A5E', fontSize: '16px' }}>{rules.currency}{simNetPayout.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Customer Fee Card */}
           <div style={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '8px' }}>
-              Customer Pays:
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+              Customer Checkout Fee:
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', color: '#64748b' }}>Delivery Fee:</span>
               <span style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                color: isCustomerFreeDelivery ? '#166534' : '#0f172a',
-                backgroundColor: isCustomerFreeDelivery ? '#dcfce7' : '#f1f5f9',
+                color: '#0f172a',
+                backgroundColor: '#f1f5f9',
                 padding: '2px 8px',
                 borderRadius: '6px',
               }}>
-                {isCustomerFreeDelivery ? 'FREE' : `${rules.currency}${customerCharge.toFixed(2)}`}
+                {rules.currency}{rules.customerDeliveryFee.toFixed(2)}
               </span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
-              {isCustomerFreeDelivery
-                ? `Cart (${rules.currency}${simCartTotal}) >= Threshold (${rules.currency}${rules.freeDeliveryThreshold})`
-                : `Add ${rules.currency}${(rules.freeDeliveryThreshold - simCartTotal).toFixed(2)} more for FREE delivery`}
             </div>
           </div>
         </aside>

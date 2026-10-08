@@ -53,6 +53,9 @@ export interface IOrderItem {
 export interface IDriverPayout {
   baseFee: number;
   distanceFee: number;
+  grossFee?: number;
+  commissionRate?: number;
+  commissionFee?: number;
   totalFee: number;
   distanceKm?: number;
   currency?: string;
@@ -259,6 +262,9 @@ const orderSchema = new Schema<IOrderDocument>(
     driverPayout: {
       baseFee: { type: Number },
       distanceFee: { type: Number },
+      grossFee: { type: Number },
+      commissionRate: { type: Number },
+      commissionFee: { type: Number },
       totalFee: { type: Number },
       distanceKm: { type: Number },
       currency: { type: String, default: "£" },

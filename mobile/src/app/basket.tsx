@@ -414,37 +414,6 @@ export default function BasketScreen() {
         {/* Divider */}
         <View className="h-px bg-border/70 my-4" />
 
-        {/* ─── FREE DELIVERY THRESHOLD SECTION ─── */}
-        <View className="py-2">
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-sm font-bold text-foreground">
-              {isFreeDeliveryUnlocked
-                ? "You unlocked FREE delivery! 🎉"
-                : `Add ${currency}${freeDeliveryRemaining.toFixed(
-                    2
-                  )} more for FREE delivery`}
-            </Text>
-            <MaterialCommunityIcons
-              name="truck-delivery-outline"
-              size={22}
-              color="#00B37A"
-            />
-          </View>
-
-          {/* Progress Bar */}
-          <View className="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-            <View
-              className="h-full rounded-full bg-[#007A5A]"
-              style={{
-                width: `${Math.min(
-                  100,
-                  Math.max(0, Math.round((freeDeliveryProgress || 0) * 100))
-                )}%`,
-              }}
-            />
-          </View>
-        </View>
-
         {/* ─── BILL BREAKDOWN ─── */}
         <View className="mt-4 gap-2.5">
           <View className="flex-row items-center justify-between">
@@ -458,7 +427,8 @@ export default function BasketScreen() {
           <View className="flex-row items-center justify-between">
             <Text className="text-sm text-foreground">Delivery fee</Text>
             <Text className="text-sm font-semibold text-foreground">
-              {deliveryFee === 0 ? "FREE" : `${currency}${deliveryFee.toFixed(2)}`}
+              {currency}
+              {deliveryFee.toFixed(2)}
             </Text>
           </View>
 

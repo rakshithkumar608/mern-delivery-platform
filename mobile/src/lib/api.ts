@@ -581,6 +581,9 @@ export interface DriverInfo {
 export interface DriverPayout {
   baseFee: number;
   distanceFee: number;
+  grossFee?: number;
+  commissionRate?: number;
+  commissionFee?: number;
   totalFee: number;
   distanceKm?: number;
   currency: string;
@@ -747,8 +750,9 @@ export interface DeliveryRule {
   driverBasePayout: number;
   driverPerKmRate: number;
   driverMinPayout: number;
-  customerBaseDeliveryFee: number;
-  freeDeliveryThreshold: number;
+  platformCommissionRate: number;
+  customerDeliveryFee: number;
+  freeDeliveryThreshold?: number;
   currency: string;
   updatedBy?: string;
   updatedAt?: string;

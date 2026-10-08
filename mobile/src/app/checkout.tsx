@@ -410,7 +410,8 @@ export default function CheckoutScreen() {
             <View className="flex-row items-center justify-between">
               <Text className="text-sm text-foreground">Delivery fee</Text>
               <Text className="text-sm font-semibold text-foreground">
-                {deliveryFee === 0 ? "FREE" : `${currency}${deliveryFee.toFixed(2)}`}
+                {currency}
+                {deliveryFee.toFixed(2)}
               </Text>
             </View>
 

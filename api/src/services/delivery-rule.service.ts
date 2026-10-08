@@ -5,14 +5,17 @@ const DEFAULT_RULES: IDeliveryRule = {
   driverBasePayout: 4.90,
   driverPerKmRate: 1.20,
   driverMinPayout: 5.00,
-  customerBaseDeliveryFee: 1.49,
-  freeDeliveryThreshold: 10.00,
+  platformCommissionRate: 15,
+  customerDeliveryFee: 1.49,
   currency: "£",
 };
 
 export interface DriverPayoutCalculation {
   baseFee: number;
   distanceFee: number;
+  grossFee: number;
+  commissionRate: number;
+  commissionFee: number;
   totalFee: number;
   distanceKm: number;
   currency: string;
@@ -50,8 +53,8 @@ export class DeliveryRuleService {
       if (updates.driverBasePayout !== undefined) rules.driverBasePayout = Number(updates.driverBasePayout);
       if (updates.driverPerKmRate !== undefined) rules.driverPerKmRate = Number(updates.driverPerKmRate);
       if (updates.driverMinPayout !== undefined) rules.driverMinPayout = Number(updates.driverMinPayout);
-      if (updates.customerBaseDeliveryFee !== undefined) rules.customerBaseDeliveryFee = Number(updates.customerBaseDeliveryFee);
-      if (updates.freeDeliveryThreshold !== undefined) rules.freeDeliveryThreshold = Number(updates.freeDeliveryThreshold);
+      if (updates.platformCommissionRate !== undefined) rules.platformCommissionRate = Number(updates.platformCommissionRate);
+      if (updates.customerDeliveryFee !== undefined) rules.customerDeliveryFee = Number(updates.customerDeliveryFee);
       if (updates.currency !== undefined && updates.currency.trim()) rules.currency = updates.currency.trim();
       rules.updatedBy = updatedBy;
     }
@@ -62,20 +65,29 @@ export class DeliveryRuleService {
   }
 
   /**
-   * Calculate driver payout for a specific distance using current active rules
+   * Calculate driver payout for a specific distance using current active rules:
+   * Gross = Base + Distance
+   * Commission = Gross * (platformCommissionRate / 100)
+   * Net Total = max(minPayout, Gross - Commission)
    */
   async calculateDriverPayout(distanceKm = 1.0): Promise<DriverPayoutCalculation> {
     const rules = await this.getDeliveryRules();
     const distance = Math.max(0.1, Number(distanceKm) || 1.0);
     const baseFee = Number(rules.driverBasePayout) || 4.90;
     const distanceFee = Number((distance * (rules.driverPerKmRate || 1.20)).toFixed(2));
-    const rawTotal = Number((baseFee + distanceFee).toFixed(2));
+    const grossFee = Number((baseFee + distanceFee).toFixed(2));
+    const commissionRate = Number(rules.platformCommissionRate ?? 15);
+    const commissionFee = Number((grossFee * (commissionRate / 100)).toFixed(2));
+    const netTotal = Number((grossFee - commissionFee).toFixed(2));
     const minPayout = Number(rules.driverMinPayout) || 5.00;
-    const totalFee = Math.max(minPayout, rawTotal);
+    const totalFee = Math.max(minPayout, netTotal);
 
     return {
       baseFee,
       distanceFee,
+      grossFee,
+      commissionRate,
+      commissionFee,
       totalFee,
       distanceKm: Number(distance.toFixed(1)),
       currency: rules.currency || "£",

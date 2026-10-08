@@ -59,9 +59,15 @@ export default function DriverDeliveryDetailScreen() {
   const distanceFee =
     order?.driverPayout?.distanceFee ??
     (rules ? Number((1.2 * rules.driverPerKmRate).toFixed(2)) : (isSecondOrder ? 1.30 : 1.50));
+  const grossFee =
+    order?.driverPayout?.grossFee ?? Number((baseFee + distanceFee).toFixed(2));
+  const commissionRate =
+    order?.driverPayout?.commissionRate ?? (rules?.platformCommissionRate ?? 15);
+  const commissionFee =
+    order?.driverPayout?.commissionFee ?? Number((grossFee * (commissionRate / 100)).toFixed(2));
   const totalFee =
     order?.driverPayout?.totalFee ??
-    Math.max(rules?.driverMinPayout ?? 5.0, Number((baseFee + distanceFee).toFixed(2)));
+    Math.max(rules?.driverMinPayout ?? 5.0, Number((grossFee - commissionFee).toFixed(2)));
 
   const { mutate: claimDelivery, isPending: isClaiming } = useMutation({
     mutationFn: () => claimOrderMutationFn(order?.orderNumber || order?._id || id || "CH-6401"),
@@ -241,12 +247,26 @@ export default function DriverDeliveryDetailScreen() {
                 </Text>
               </View>
 
+              <View className="flex-row items-center justify-between py-1.5">
+                <Text className="text-sm font-medium text-amber-700">
+                  Platform Commission ({commissionRate}%)
+                </Text>
+                <Text className="text-sm font-semibold text-amber-700">
+                  -{currencySymbol}{commissionFee.toFixed(2)}
+                </Text>
+              </View>
+
               {/* Total Row */}
               <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-slate-100">
-                <Text className="text-base font-bold text-slate-900">
-                  Total
-                </Text>
-                <Text className="text-2xl font-black text-slate-900">
+                <View>
+                  <Text className="text-base font-bold text-slate-900">
+                    Net Payout
+                  </Text>
+                  <Text className="text-[11px] text-slate-500">
+                    Gross: {currencySymbol}{grossFee.toFixed(2)}
+                  </Text>
+                </View>
+                <Text className="text-2xl font-black text-[#007A5E]">
                   {currencySymbol}{totalFee.toFixed(2)}
                 </Text>
               </View>

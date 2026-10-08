@@ -71,9 +71,8 @@ export class BasketService {
     }
 
     subtotal = Number(subtotal.toFixed(2));
-    const threshold = basket.freeDeliveryThreshold ?? 10.0;
     const baseDeliveryFee = 1.49;
-    const deliveryFee = subtotal >= threshold || items.length === 0 ? 0 : baseDeliveryFee;
+    const deliveryFee = items.length === 0 ? 0 : (basket.deliveryFee ?? baseDeliveryFee);
     const serviceFee = items.length > 0 ? (basket.serviceFee ?? 0.99) : 0;
     const discount = basket.discount ?? 0;
     const total = Math.max(0, Number((subtotal + deliveryFee + serviceFee - discount).toFixed(2)));

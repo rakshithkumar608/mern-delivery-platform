@@ -300,7 +300,12 @@ export default function DriverHomeScreen() {
                   (rules
                     ? Math.max(
                         rules.driverMinPayout,
-                        Number((rules.driverBasePayout + distanceKm * rules.driverPerKmRate).toFixed(2))
+                        Number(
+                          (
+                            (rules.driverBasePayout + distanceKm * rules.driverPerKmRate) *
+                            (1 - (rules.platformCommissionRate ?? 15) / 100)
+                          ).toFixed(2)
+                        )
                       )
                     : 6.40);
 
