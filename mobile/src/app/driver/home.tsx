@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import {
   fetchActiveDriverOrderQueryFn,
+  fetchDeliveryRulesQueryFn,
   fetchReadyOrdersQueryFn,
   User,
 } from "@/lib/api";
@@ -36,6 +37,14 @@ export default function DriverHomeScreen() {
       }
     });
   }, []);
+
+  // Delivery rules & driver payout configuration
+  const { data: rulesData } = useQuery({
+    queryKey: ["delivery-rules"],
+    queryFn: fetchDeliveryRulesQueryFn,
+    staleTime: 60000,
+  });
+  const rules = rulesData?.rules;
 
   // Poll for ready orders
   const {
@@ -276,15 +285,24 @@ export default function DriverHomeScreen() {
                   item.items?.[0]?.image ||
                   "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=500&auto=format&fit=crop&q=80";
                 
+                const distanceKm = 0.8 + index * 0.4;
                 const distanceText =
-                  item.distanceText || `${(0.8 + index * 0.4).toFixed(1)} km away`;
+                  item.distanceText || `${distanceKm.toFixed(1)} km away`;
                 const dropoffArea =
                   item.dropoffArea ||
                   item.deliveryAddress?.fullAddress?.split(",")?.[1]?.trim() ||
                   item.deliveryAddress?.label ||
                   "Customer location";
                 
-                const driverFee = 6.40;
+                const currencySymbol = item.driverPayout?.currency || rules?.currency || "£";
+                const driverFee =
+                  item.driverPayout?.totalFee ??
+                  (rules
+                    ? Math.max(
+                        rules.driverMinPayout,
+                        Number((rules.driverBasePayout + distanceKm * rules.driverPerKmRate).toFixed(2))
+                      )
+                    : 6.40);
 
                 return (
                   <View
@@ -342,9 +360,14 @@ export default function DriverHomeScreen() {
 
                       {/* Bottom Row: Payout & Claim Button */}
                       <View className="flex-row items-center justify-between mt-2 pt-1">
-                        <Text className="font-extrabold text-base text-slate-900">
-                          £{driverFee.toFixed(2)}
-                        </Text>
+                        <View>
+                          <Text className="font-extrabold text-base text-slate-900">
+                            {currencySymbol}{driverFee.toFixed(2)}
+                          </Text>
+                          <Text className="text-[10px] text-slate-500 font-medium">
+                            Courier payout
+                          </Text>
+                        </View>
 
                         <Pressable
                           onPress={() => router.push(`/driver/delivery/${item.orderNumber || orderId}` as any)}

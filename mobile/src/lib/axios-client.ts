@@ -6,11 +6,14 @@ import { getToken } from "@/features/auth/token-storage";
 
 // Determine the most appropriate base URL for the current environment
 const getBaseUrl = (): string => {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+  const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+
+  // 1. If an explicit remote HTTPS URL or ngrok/tunnel URL is specified, respect it directly
+  if (envUrl && (envUrl.startsWith("https://") || envUrl.includes(".ngrok") || envUrl.includes(".loca.lt"))) {
+    return envUrl;
   }
 
-  // Attempt to extract computer's LAN IP from Expo Constants across Expo Go and custom dev clients
+  // 2. Extract computer's active LAN IP from Expo Constants (dynamically matches Metro bundler host)
   const hostUri =
     Constants.expoConfig?.hostUri ||
     (Constants as any).expoGoConfig?.debuggerHost ||
@@ -24,16 +27,25 @@ const getBaseUrl = (): string => {
     }
   }
 
-  // Fallback for mobile devices (both physical phones and emulators can reach LAN IP)
-  const LAN_IP = "192.168.31.122";
-  if (Platform.OS === "android" || Platform.OS === "ios") {
-    return `http://${LAN_IP}:5000/api/v1`;
+  // 3. If EXPO_PUBLIC_API_URL is configured (e.g. local IP override), use it
+  if (envUrl) {
+    return envUrl;
   }
 
+  // 4. Android Emulator loopback alias (10.0.2.2 connects to host computer)
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:5000/api/v1";
+  }
+
+  // 5. iOS Simulator & Web fallback
   return "http://localhost:5000/api/v1";
 };
 
 export const API_BASE_URL = getBaseUrl();
+
+if (__DEV__) {
+  console.log(`[Chowly API] Base URL initialized to: ${API_BASE_URL}`);
+}
 
 export const API = axios.create({
   baseURL: API_BASE_URL,
@@ -62,11 +74,19 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    const backendMessage =
+    let backendMessage =
       error.response?.data?.message ||
-      error.response?.data?.errors?.[0]?.message ||
-      error.message ||
-      "An unexpected error occurred. Please try again.";
+      error.response?.data?.errors?.[0]?.message;
+
+    if (!backendMessage) {
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        backendMessage = "Server connection timed out. Please check if the backend is running.";
+      } else if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
+        backendMessage = `Network Error: Cannot connect to API at ${API.defaults.baseURL || API_BASE_URL}. Ensure your device and PC are on the same Wi-Fi.`;
+      } else {
+        backendMessage = error.message || "An unexpected error occurred. Please try again.";
+      }
+    }
 
     // Enhance Error object with clean backend message
     const customError = new Error(backendMessage);

@@ -50,6 +50,14 @@ export interface IOrderItem {
   itemTotal: number;
 }
 
+export interface IDriverPayout {
+  baseFee: number;
+  distanceFee: number;
+  totalFee: number;
+  distanceKm?: number;
+  currency?: string;
+}
+
 export interface IOrder {
   orderNumber: string; // e.g. "CH-2481"
   userId?: Types.ObjectId | string;
@@ -86,6 +94,7 @@ export interface IOrder {
   status: OrderStatus;
   statusHistory: IOrderStatusHistory[];
   driver?: IDriverInfo;
+  driverPayout?: IDriverPayout;
   deliveryOtp?: string;
   includeCutlery: boolean;
   orderNotes?: string;
@@ -246,6 +255,13 @@ const orderSchema = new Schema<IOrderDocument>(
       totalRatings: { type: Number, default: 320 },
       vehicleType: { type: String, default: "Scooter" },
       plateNumber: { type: String },
+    },
+    driverPayout: {
+      baseFee: { type: Number },
+      distanceFee: { type: Number },
+      totalFee: { type: Number },
+      distanceKm: { type: Number },
+      currency: { type: String, default: "£" },
     },
     deliveryOtp: {
       type: String,

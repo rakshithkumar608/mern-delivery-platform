@@ -578,6 +578,14 @@ export interface DriverInfo {
   plateNumber?: string;
 }
 
+export interface DriverPayout {
+  baseFee: number;
+  distanceFee: number;
+  totalFee: number;
+  distanceKm?: number;
+  currency: string;
+}
+
 export interface Order {
   _id: string;
   orderNumber: string;
@@ -614,6 +622,7 @@ export interface Order {
   status: OrderStatus;
   statusHistory: OrderStatusHistoryItem[];
   driver?: DriverInfo | null;
+  driverPayout?: DriverPayout;
   deliveryOtp?: string;
   includeCutlery: boolean;
   orderNotes?: string;
@@ -730,6 +739,28 @@ export interface ActiveDriverOrderResponse {
 
 export const fetchActiveDriverOrderQueryFn = async (): Promise<ActiveDriverOrderResponse> => {
   const response = await API.get<ActiveDriverOrderResponse>("/orders/driver/active");
+  return response.data;
+};
+
+export interface DeliveryRule {
+  _id?: string;
+  driverBasePayout: number;
+  driverPerKmRate: number;
+  driverMinPayout: number;
+  customerBaseDeliveryFee: number;
+  freeDeliveryThreshold: number;
+  currency: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface DeliveryRulesResponse {
+  success: boolean;
+  rules: DeliveryRule;
+}
+
+export const fetchDeliveryRulesQueryFn = async (): Promise<DeliveryRulesResponse> => {
+  const response = await API.get<DeliveryRulesResponse>("/delivery-rules");
   return response.data;
 };
 

@@ -11,13 +11,25 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { claimOrderMutationFn, fetchOrderByIdQueryFn } from "@/lib/api";
+import {
+  claimOrderMutationFn,
+  fetchDeliveryRulesQueryFn,
+  fetchOrderByIdQueryFn,
+} from "@/lib/api";
 import { toast } from "@/lib/sonner";
 
 export default function DriverDeliveryDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  // Fetch platform delivery rules
+  const { data: rulesData } = useQuery({
+    queryKey: ["delivery-rules"],
+    queryFn: fetchDeliveryRulesQueryFn,
+    staleTime: 60000,
+  });
+  const rules = rulesData?.rules;
 
   // Fetch order data from API if existing order ID is provided
   const { data, isLoading } = useQuery({
@@ -39,9 +51,17 @@ export default function DriverDeliveryDetailScreen() {
     ? items.reduce((sum, it) => sum + (it.quantity || 1), 0)
     : (isSecondOrder ? 2 : 3);
 
-  const baseFee = isSecondOrder ? 4.50 : 4.90;
-  const distanceFee = isSecondOrder ? 1.30 : 1.50;
-  const totalFee = isSecondOrder ? 5.80 : 6.40;
+  // Dynamic driver payout rates configured by admin
+  const currencySymbol = order?.driverPayout?.currency || rules?.currency || "£";
+  const baseFee =
+    order?.driverPayout?.baseFee ??
+    (rules?.driverBasePayout ?? (isSecondOrder ? 4.50 : 4.90));
+  const distanceFee =
+    order?.driverPayout?.distanceFee ??
+    (rules ? Number((1.2 * rules.driverPerKmRate).toFixed(2)) : (isSecondOrder ? 1.30 : 1.50));
+  const totalFee =
+    order?.driverPayout?.totalFee ??
+    Math.max(rules?.driverMinPayout ?? 5.0, Number((baseFee + distanceFee).toFixed(2)));
 
   const { mutate: claimDelivery, isPending: isClaiming } = useMutation({
     mutationFn: () => claimOrderMutationFn(order?.orderNumber || order?._id || id || "CH-6401"),
@@ -192,13 +212,23 @@ export default function DriverDeliveryDetailScreen() {
               {/* Divider */}
               <View className="border-t border-slate-100 my-3" />
 
+              {/* Courier Earnings Rate Notice */}
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-[11px] font-bold text-[#007A5E] bg-emerald-50 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                  Courier Earnings (Admin Rate)
+                </Text>
+                <Text className="text-[11px] text-slate-400">
+                  Distance ~{(order?.driverPayout?.distanceKm ?? 1.2).toFixed(1)} km
+                </Text>
+              </View>
+
               {/* Breakdown Rows */}
               <View className="flex-row items-center justify-between py-1.5">
                 <Text className="text-sm font-medium text-slate-600">
                   Base
                 </Text>
                 <Text className="text-sm font-semibold text-slate-900">
-                  £{baseFee.toFixed(2)}
+                  {currencySymbol}{baseFee.toFixed(2)}
                 </Text>
               </View>
 
@@ -207,7 +237,7 @@ export default function DriverDeliveryDetailScreen() {
                   Distance
                 </Text>
                 <Text className="text-sm font-semibold text-slate-900">
-                  £{distanceFee.toFixed(2)}
+                  {currencySymbol}{distanceFee.toFixed(2)}
                 </Text>
               </View>
 
@@ -217,7 +247,7 @@ export default function DriverDeliveryDetailScreen() {
                   Total
                 </Text>
                 <Text className="text-2xl font-black text-slate-900">
-                  £{totalFee.toFixed(2)}
+                  {currencySymbol}{totalFee.toFixed(2)}
                 </Text>
               </View>
             </View>

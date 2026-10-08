@@ -5,6 +5,7 @@ import { paymentService } from "./payment.service";
 import { BadRequestException, NotFoundException } from "../utils/app-error";
 import { logger } from "../utils/logger";
 import { Env } from "../config/env.config";
+import { deliveryRuleService } from "./delivery-rule.service";
 
 export interface CreateOrderCheckoutPayload {
   deliveryAddress?: {
@@ -139,6 +140,7 @@ export class OrderService {
       },
       status: "placed",
       statusHistory: initialHistory,
+      driverPayout: await deliveryRuleService.calculateDriverPayout(1.5),
       deliveryOtp: Math.floor(1000 + Math.random() * 9000).toString(),
       includeCutlery: basket.includeCutlery ?? true,
       orderNotes: basket.orderNotes || "",
@@ -242,8 +244,13 @@ export class OrderService {
     const minutes = eta.getMinutes().toString().padStart(2, "0");
     const formattedEta = `${hours}:${minutes}`;
 
+    const orderObj: any = order.toObject();
+    if (!orderObj.driverPayout || !orderObj.driverPayout.totalFee) {
+      orderObj.driverPayout = await deliveryRuleService.calculateDriverPayout(1.5);
+    }
+
     return {
-      ...order.toObject(),
+      ...orderObj,
       formattedEta,
     };
   }
@@ -267,7 +274,7 @@ export class OrderService {
    * Strictly excludes delivered and cancelled orders
    */
   async getReadyOrders(): Promise<any[]> {
-    return Order.find({
+    const orders = await Order.find({
       status: { $nin: ["delivered", "cancelled"] },
       $or: [
         { "driver.name": null },
@@ -278,13 +285,25 @@ export class OrderService {
       .sort({ createdAt: -1 })
       .limit(20)
       .exec();
+
+    const formattedOrders: any[] = [];
+    for (let i = 0; i < orders.length; i++) {
+      const ord: any = orders[i].toObject();
+      if (!ord.driverPayout || !ord.driverPayout.totalFee) {
+        const distanceKm = 0.8 + i * 0.4;
+        ord.driverPayout = await deliveryRuleService.calculateDriverPayout(distanceKm);
+      }
+      formattedOrders.push(ord);
+    }
+
+    return formattedOrders;
   }
 
   /**
    * Driver: Get active order in progress for this driver
    */
   async getActiveDriverOrder(driverName: string = "Tunde A."): Promise<any | null> {
-    return Order.findOne({
+    const order = await Order.findOne({
       $or: [
         { "driver.name": driverName },
         { "driver.name": { $regex: new RegExp(driverName, "i") } },
@@ -293,6 +312,13 @@ export class OrderService {
     })
       .sort({ updatedAt: -1 })
       .exec();
+
+    if (!order) return null;
+    const orderObj: any = order.toObject();
+    if (!orderObj.driverPayout || !orderObj.driverPayout.totalFee) {
+      orderObj.driverPayout = await deliveryRuleService.calculateDriverPayout(1.5);
+    }
+    return orderObj;
   }
 
   /**
