@@ -166,7 +166,7 @@ export default function DriverHomeScreen() {
       </View>
 
       {/* Main Content Card Container */}
-      <View className="flex-1 bg-white rounded-t-[32px] overflow-hidden">
+      <View className="flex-1 bg-white rounded-t-4xl overflow-hidden">
         <ScrollView
           contentContainerStyle={{
             paddingHorizontal: 20,
@@ -242,7 +242,7 @@ export default function DriverHomeScreen() {
               <Text className="text-lg font-bold text-slate-800 text-center mb-1">
                 You&apos;re currently offline
               </Text>
-              <Text className="text-sm text-slate-500 text-center max-w-[260px] mb-6">
+              <Text className="text-sm text-slate-500 text-center max-w-65 mb-6">
                 Switch the toggle at the top to &apos;Online&apos; to view ready orders and start delivering.
               </Text>
               <Pressable
@@ -262,7 +262,7 @@ export default function DriverHomeScreen() {
               <Text className="text-base font-bold text-slate-800 text-center mb-1">
                 No orders waiting for pickup
               </Text>
-              <Text className="text-xs text-slate-500 text-center max-w-[250px] mb-4">
+              <Text className="text-xs text-slate-500 text-center max-w-62.5 mb-4">
                 Once customer orders are confirmed by the kitchen, they will appear here to claim.
               </Text>
               <Pressable

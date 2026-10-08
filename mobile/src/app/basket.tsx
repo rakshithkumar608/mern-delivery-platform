@@ -244,7 +244,7 @@ export default function BasketScreen() {
                         />
                       </Pressable>
 
-                      <Text className="text-xs font-bold text-foreground min-w-[16px] text-center">
+                      <Text className="text-xs font-bold text-foreground min-w-4 text-center">
                         {item.quantity}
                       </Text>
 
