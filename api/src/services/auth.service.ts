@@ -42,7 +42,7 @@ export class AuthService {
       email: data.email.toLowerCase().trim(),
       password: data.password,
       phone: data.phone.trim(),
-      role: data.role || "customer",
+      role: "customer",
     });
 
     await user.save();

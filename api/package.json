@@ -10,7 +10,9 @@
     "build": "npm run typecheck && tsup",
     "start": "node dist/index.js",
     "seed:categories": "tsx src/scripts/seed-categories.ts",
-    "seed:restaurants": "tsx src/scripts/seed-restaurants.ts"
+    "seed:restaurants": "tsx src/scripts/seed-restaurants.ts",
+    "seed:driver": "tsx src/scripts/seed-driver.ts",
+    "seed:admin": "tsx src/scripts/seed-admin.ts"
   },
   "keywords": [],
   "author": "",

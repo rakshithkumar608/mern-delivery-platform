@@ -1,47 +1,50 @@
-import axios, { AxiosError } from "axios";
+import API from "./axios-client";
+import type {
+  AuthResponse,
+  LoginCredentials,
+  User,
+} from "@/types/auth";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+export { API, API_BASE_URL } from "./axios-client";
 
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+/**
+ * Log in an existing user
+ * Used in: useMutation({ mutationFn: loginMutationFn })
+ */
+export const loginMutationFn = async (
+  payload: LoginCredentials
+): Promise<AuthResponse> => {
+  const response = await API.post<AuthResponse>("/auth/login", payload);
+  return response.data;
+};
 
-// Attach JWT token from localStorage if present
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("chowly_admin_token");
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+/**
+ * Log out the current user and clear server auth cookie
+ * Used in: useMutation({ mutationFn: logoutMutationFn })
+ */
+export const logoutMutationFn = async (): Promise<{ success: boolean; message: string }> => {
+  const response = await API.post<{ success: boolean; message: string }>("/auth/logout");
+  return response.data;
+};
 
-// Response interceptor to handle 401 unauthorized
-api.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Clear local storage if token expired/invalid
-      localStorage.removeItem("chowly_admin_token");
-      localStorage.removeItem("chowly_admin_user");
-    }
-    return Promise.reject(error);
-  }
-);
+/**
+ * Get current authenticated user profile
+ * Used in: useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUserQueryFn })
+ */
+export const getCurrentUserQueryFn = async (): Promise<{
+  success: boolean;
+  user: User;
+  hasAddress?: boolean;
+}> => {
+  const response = await API.get<{
+    success: boolean;
+    user: User;
+    hasAddress?: boolean;
+  }>("/auth/me");
+  return response.data;
+};
 
 export function getApiErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as { message?: string; errors?: Array<{ message: string }> } | undefined;
-    if (data?.message) return data.message;
-    if (data?.errors && data.errors.length > 0 && data.errors[0]?.message) {
-      return data.errors[0].message;
-    }
-    if (error.message) return error.message;
-  }
   if (error instanceof Error) {
     return error.message;
   }
