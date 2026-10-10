@@ -6,7 +6,6 @@ import {
   Clock,
   Coins,
   ChevronRight,
-  Navigation,
   Percent,
   ShoppingBag,
   Sliders,

@@ -3,28 +3,28 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 
 export function UnauthorizedPage() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F7F8FA] dark:bg-[#1A1A2E] p-6 text-center">
-      <div className="w-full max-w-md rounded-[28px] border border-[#E5E7EB] dark:border-[#2D2D4A] bg-white dark:bg-[#222240] p-8 sm:p-10 shadow-chowly-card flex flex-col items-center">
-        <div className="flex size-16 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-950/40 mb-6 shadow-xs">
-          <ShieldAlert className="size-8" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8F9FA] p-6 text-center text-[#111827]">
+      <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-xs flex flex-col items-center">
+        <div className="flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600 mb-4">
+          <ShieldAlert className="size-6" />
         </div>
 
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-500/20 px-3 py-1 text-xs font-bold text-red-600 mb-3">
-          Error 403
-        </div>
+        <span className="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1">
+          403 Access Denied
+        </span>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1A2E] dark:text-[#F0F0F5]">
-          Access Denied
+        <h1 className="text-lg font-semibold text-gray-900">
+          Unauthorized
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-2 mb-8 leading-relaxed">
-          Your current platform account role does not have permission to view this console view.
+        <p className="text-xs text-gray-500 mt-1 mb-6 leading-relaxed">
+          Your account role does not have permission to view this section.
         </p>
 
         <Link
           to="/login"
-          className="h-12 px-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#00B37A] hover:bg-[#00875A] text-white text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#00875A] hover:bg-[#00704A] text-white text-xs font-medium transition-colors"
         >
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-3.5" />
           <span>Back to Sign In</span>
         </Link>
       </div>
