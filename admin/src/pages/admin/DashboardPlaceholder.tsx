@@ -1,290 +1,483 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/lib/auth-context";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { AdminNavbar } from "@/components/layout/AdminNavbar";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ArrowRight,
+  Bike,
   Clock,
   Coins,
-  LogOut,
+  ChevronRight,
   Navigation,
   Percent,
-  Server,
-  ShieldCheck,
   ShoppingBag,
   Sliders,
   TrendingUp,
-  UtensilsCrossed,
 } from "lucide-react";
-import logoImg from "@/assets/logo-mark-teal.png";
+
+interface MockOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  restaurantName: string;
+  itemsSummary: string;
+  totalPrice: number;
+  currency: string;
+  status: "placed" | "preparing" | "on_the_way" | "delivered";
+  statusLabel: string;
+  eta: string;
+  image: string;
+  driverName?: string;
+}
+
+interface MockDriver {
+  id: string;
+  name: string;
+  vehicle: string;
+  status: "delivering" | "available";
+  activeOrder?: string;
+  todayEarnings: number;
+  todayDeliveries: number;
+  rating: number;
+}
 
 export function AdminDashboardPlaceholder() {
-  const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [orderFilter, setOrderFilter] = useState<string>("all");
+
+  const mockOrders: MockOrder[] = [
+    {
+      id: "ord_101",
+      orderNumber: "CH-2048",
+      customerName: "Sophia Martinez",
+      restaurantName: "Burger & Beyond",
+      itemsSummary: "1x Bougie Burger with Truffle Mayo, 1x Rosemary Salt Fries",
+      totalPrice: 16.45,
+      currency: "£",
+      status: "on_the_way",
+      statusLabel: "On the way",
+      eta: "8–12 min",
+      image:
+        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&auto=format&fit=crop&q=80",
+      driverName: "Tunde A. (Scooter)",
+    },
+    {
+      id: "ord_102",
+      orderNumber: "CH-2047",
+      customerName: "Liam Johnson",
+      restaurantName: "Sushi Daily",
+      itemsSummary: "1x Rainbow Sushi Platter (12 pcs), 1x Miso Soup",
+      totalPrice: 19.8,
+      currency: "£",
+      status: "preparing",
+      statusLabel: "Preparing",
+      eta: "14–18 min",
+      image:
+        "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&auto=format&fit=crop&q=80",
+      driverName: "Alex M. (Assigned)",
+    },
+    {
+      id: "ord_103",
+      orderNumber: "CH-2046",
+      customerName: "Emma Davies",
+      restaurantName: "Bella Italia",
+      itemsSummary: "2x Margherita DOP, 1x Garlic Dough Balls",
+      totalPrice: 24.5,
+      currency: "£",
+      status: "placed",
+      statusLabel: "Order Placed",
+      eta: "25–30 min",
+      image:
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300&auto=format&fit=crop&q=80",
+    },
+    {
+      id: "ord_104",
+      orderNumber: "CH-2045",
+      customerName: "David Kim",
+      restaurantName: "Pasta Evangelists",
+      itemsSummary: "1x Truffle Tagliatelle, 1x Tiramisu Cup",
+      totalPrice: 15.3,
+      currency: "£",
+      status: "delivered",
+      statusLabel: "Delivered",
+      eta: "Delivered 15m ago",
+      image:
+        "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=300&auto=format&fit=crop&q=80",
+      driverName: "Sarah K. (E-Bike)",
+    },
+  ];
+
+  const mockDrivers: MockDriver[] = [
+    {
+      id: "drv_1",
+      name: "Tunde A.",
+      vehicle: "Scooter",
+      status: "delivering",
+      activeOrder: "CH-2048",
+      todayEarnings: 48.6,
+      todayDeliveries: 7,
+      rating: 4.9,
+    },
+    {
+      id: "drv_2",
+      name: "Alex M.",
+      vehicle: "E-Bike",
+      status: "delivering",
+      activeOrder: "CH-2047",
+      todayEarnings: 39.2,
+      todayDeliveries: 5,
+      rating: 4.8,
+    },
+    {
+      id: "drv_3",
+      name: "Sarah K.",
+      vehicle: "E-Bike",
+      status: "available",
+      todayEarnings: 54.0,
+      todayDeliveries: 8,
+      rating: 5.0,
+    },
+    {
+      id: "drv_4",
+      name: "Marcus B.",
+      vehicle: "Bicycle",
+      status: "available",
+      todayEarnings: 31.5,
+      todayDeliveries: 4,
+      rating: 4.7,
+    },
+  ];
+
+  const filteredOrders = mockOrders.filter((order) => {
+    if (orderFilter !== "all" && order.status !== orderFilter) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      order.orderNumber.toLowerCase().includes(q) ||
+      order.restaurantName.toLowerCase().includes(q) ||
+      order.customerName.toLowerCase().includes(q)
+    );
+  });
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen bg-[#F8F9FA] text-[#111827]">
+      <AdminNavbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+              Operations Overview
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Live orders, courier fleet status, and delivery pricing control.
+            </p>
+          </div>
+
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 shadow-sm ring-1 ring-emerald-500/20">
-              <img
-                src={logoImg}
-                alt="Chowly"
-                className="size-7 object-contain drop-shadow"
-                onError={(e) => {
-                  (e.currentTarget as HTMLElement).style.display = "none";
-                }}
-              />
-              <UtensilsCrossed className="size-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  Chowly Admin
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live System
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Operations & Platform Control
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold text-xs ring-1 ring-emerald-500/25">
-                {user?.name?.slice(0, 2).toUpperCase() ?? "AD"}
-              </div>
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                  {user?.name}
-                </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {user?.email}
-                </span>
-              </div>
-              <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-semibold text-[11px] capitalize px-2 py-0.5 shadow-xs">
-                <ShieldCheck className="size-3 mr-1" />
-                {user?.role}
-              </Badge>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void logout()}
-              className="text-xs font-semibold rounded-lg border-slate-200 dark:border-slate-800 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300 cursor-pointer"
+            <Link
+              to="/admin/settings/delivery"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#00875A] hover:bg-[#00704A] text-white text-xs sm:text-sm font-medium rounded-lg shadow-xs transition-colors"
             >
-              <LogOut data-icon="inline-start" className="size-3.5" />
-              Sign Out
-            </Button>
+              <Sliders className="size-4" />
+              <span>Delivery Rules</span>
+            </Link>
           </div>
         </div>
-      </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto p-6 flex flex-col gap-8">
-        {/* Hero Welcome Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-6 sm:p-8 text-white shadow-xl shadow-emerald-900/10">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-col gap-1.5 max-w-2xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
-                Platform Operations Overview
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Volume */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">
+                Gross Volume
               </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                Welcome back, {user?.name}! 👋
-              </h1>
-              <p className="text-sm text-emerald-100 leading-relaxed">
-                Platform authentication, session validation, and TanStack React Query cache are online. You have full access to configure commission rates, monitor dispatch, and manage restaurants.
+              <Coins className="size-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-semibold text-gray-900 mt-2">
+              £1,428.50
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-[#00875A] font-medium mt-1.5">
+              <TrendingUp className="size-3.5" />
+              <span>+14.2%</span>
+              <span className="text-gray-400 font-normal">vs yesterday</span>
+            </div>
+          </div>
+
+          {/* Orders */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">
+                Active Orders
+              </span>
+              <ShoppingBag className="size-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-semibold text-gray-900 mt-2">
+              18
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              9 in kitchen • 5 in transit
+            </p>
+          </div>
+
+          {/* Couriers */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">
+                Couriers Online
+              </span>
+              <Bike className="size-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-semibold text-gray-900 mt-2">
+              24
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              16 available • 8 on delivery
+            </p>
+          </div>
+
+          {/* Commission */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">
+                Commission (15%)
+              </span>
+              <Percent className="size-4 text-gray-400" />
+            </div>
+            <div className="text-2xl font-semibold text-gray-900 mt-2">
+              £214.28
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              Platform retained share
+            </p>
+          </div>
+        </div>
+
+        {/* Live Orders Section (Exact Mobile Orders Screen Reference) */}
+        <section className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 shadow-xs flex flex-col gap-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">
+                Live Orders
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Current order lifecycle across restaurants and customers
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link
-                to="/admin/settings/delivery"
-                className={buttonVariants({
-                  className:
-                    "bg-white hover:bg-slate-100 text-emerald-800 font-bold shadow-md cursor-pointer rounded-xl",
-                })}
-              >
-                <Sliders data-icon="inline-start" className="size-4 text-emerald-700" />
-                Commission & Payouts
-                <ArrowRight data-icon="inline-end" className="size-4" />
-              </Link>
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200 self-start sm:self-auto">
+              {[
+                { id: "all", label: "All" },
+                { id: "placed", label: "Placed" },
+                { id: "preparing", label: "Cooking" },
+                { id: "on_the_way", label: "On the way" },
+                { id: "delivered", label: "Delivered" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setOrderFilter(tab.id)}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+                    orderFilter === tab.id
+                      ? "bg-white text-gray-900 shadow-2xs font-semibold"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Decorative shapes */}
-          <div className="pointer-events-none absolute -right-12 -bottom-16 size-64 rounded-full bg-white/10 blur-2xl" />
-          <div className="pointer-events-none absolute right-48 -top-12 size-48 rounded-full bg-teal-400/20 blur-xl" />
-        </div>
+          {/* Orders List */}
+          <div className="divide-y divide-gray-100">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-4">
+                  {/* Food Thumbnail */}
+                  <img
+                    src={order.image}
+                    alt={order.restaurantName}
+                    className="size-14 rounded-lg object-cover shrink-0 border border-gray-100"
+                  />
 
-        {/* Real-time KPI Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Card 1: Gross Sales */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Gross Volume (Today)
-              </CardTitle>
-              <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                <Coins className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-slate-900 dark:text-white">
-                £1,428.50
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs font-semibold text-emerald-600">
-                <TrendingUp className="size-3.5" />
-                <span>+14.2%</span>
-                <span className="text-slate-400 font-normal">vs. yesterday</span>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        {order.restaurantName}
+                      </h3>
+                      <span className="text-xs font-mono text-gray-400">
+                        {order.orderNumber}
+                      </span>
+                    </div>
 
-          {/* Card 2: Live Orders */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Live Orders
-              </CardTitle>
-              <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
-                <ShoppingBag className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-slate-900 dark:text-white">
-                18 In Flight
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <span className="size-1.5 rounded-full bg-indigo-500" />
-                <span>9 cooking • 5 on the way</span>
-              </div>
-            </CardContent>
-          </Card>
+                    <p className="text-xs text-gray-500 truncate max-w-md mt-0.5">
+                      {order.itemsSummary}
+                    </p>
 
-          {/* Card 3: Active Courier Fleet */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Active Fleet
-              </CardTitle>
-              <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400">
-                <Navigation className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-slate-900 dark:text-white">
-                24 Couriers
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <span className="size-1.5 rounded-full bg-cyan-500" />
-                <span>16 available • 8 delivering</span>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="flex items-center gap-3 text-xs mt-1.5">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                          order.status === "on_the_way"
+                            ? "bg-emerald-50 text-[#00875A]"
+                            : order.status === "preparing"
+                            ? "bg-amber-50 text-amber-700"
+                            : order.status === "placed"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {order.statusLabel}
+                      </span>
 
-          {/* Card 4: Platform Net Commission */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Platform Commission (15%)
-              </CardTitle>
-              <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                <Percent className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-amber-600 dark:text-amber-400">
-                £214.28
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <Clock className="size-3.5" />
-                <span>Net retained earnings</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                      <span className="text-gray-400 flex items-center gap-1 text-[11px]">
+                        <Clock className="size-3" />
+                        {order.eta}
+                      </span>
 
-        {/* Navigation & Operational Hub */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick link: Delivery & Commission Rules */}
-          <Card className="border border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-950/10 shadow-xs lg:col-span-2">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-                    <Sliders className="size-4" />
+                      {order.driverName && (
+                        <span className="text-gray-400 text-[11px] hidden md:inline">
+                          Courier: {order.driverName}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <CardTitle className="text-base font-bold text-slate-900 dark:text-white">
-                    Delivery Rules & Commission Engine
-                  </CardTitle>
                 </div>
-                <Badge className="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border-emerald-300">
-                  Ready to Configure
-                </Badge>
-              </div>
-              <CardDescription className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                Fine-tune driver base pay, mileage rates (£/km), platform commission deduction rate (15%), and customer checkout delivery pricing.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/admin/settings/delivery"
-                  className={buttonVariants({
-                    className:
-                      "bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer",
-                  })}
-                >
-                  Open Delivery Rules & Payout Simulator
-                  <ArrowRight data-icon="inline-end" className="size-4" />
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Security & Session Info */}
-          <Card className="border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Server className="size-4 text-emerald-600" />
-                <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">
-                  Active Session Info
-                </CardTitle>
+                {/* Price & Action */}
+                <div className="flex items-center justify-between sm:justify-end gap-5 pl-18 sm:pl-0">
+                  <div className="text-right">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {order.currency}
+                      {order.totalPrice.toFixed(2)}
+                    </span>
+                    <span className="text-[11px] text-gray-400 block">
+                      {order.customerName}
+                    </span>
+                  </div>
+
+                  <button className="text-xs font-medium text-[#00875A] hover:text-[#006644] hover:underline flex items-center gap-0.5 cursor-pointer whitespace-nowrap">
+                    <span>Details</span>
+                    <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Authenticated Role:</span>
-                <span className="font-bold text-emerald-600 capitalize">{user?.role}</span>
+            ))}
+          </div>
+        </section>
+
+        {/* Courier Fleet & Delivery Rules Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Active Couriers Column */}
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5 sm:p-6 shadow-xs flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Active Courier Fleet
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Real-time rider assignment and earnings
+                </p>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Admin Email:</span>
-                <span className="font-mono text-slate-700 dark:text-slate-300 truncate max-w-[160px]">{user?.email}</span>
+              <span className="text-xs font-medium text-[#00875A] bg-emerald-50 px-2.5 py-1 rounded-full">
+                24 Active
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {mockDrivers.map((driver) => (
+                <div
+                  key={driver.id}
+                  className="border border-gray-100 rounded-lg p-3.5 bg-gray-50/50 flex flex-col justify-between gap-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700">
+                        {driver.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="text-xs font-semibold text-gray-900 block leading-tight">
+                          {driver.name}
+                        </span>
+                        <span className="text-[11px] text-gray-500">
+                          {driver.vehicle} • ★ {driver.rating}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                        driver.status === "delivering"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-emerald-50 text-[#00875A]"
+                      }`}
+                    >
+                      {driver.status === "delivering" ? "In Transit" : "Available"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-200/60">
+                    <span className="text-gray-500 text-[11px]">
+                      {driver.todayDeliveries} orders today
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      £{driver.todayEarnings.toFixed(2)} earned
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Delivery Pricing Summary Card */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Delivery Pricing Rules
+                </h3>
+                <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  v1.0 Live
+                </span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Cache Layer:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">TanStack Query</span>
+
+              <div className="divide-y divide-gray-100 text-xs mt-2">
+                <div className="flex justify-between py-2.5">
+                  <span className="text-gray-500">Courier Base Pay</span>
+                  <span className="font-semibold text-gray-900">£4.90</span>
+                </div>
+                <div className="flex justify-between py-2.5">
+                  <span className="text-gray-500">Distance Rate</span>
+                  <span className="font-semibold text-gray-900">£1.20 / km</span>
+                </div>
+                <div className="flex justify-between py-2.5">
+                  <span className="text-gray-500">Platform Commission</span>
+                  <span className="font-semibold text-[#00875A]">15%</span>
+                </div>
+                <div className="flex justify-between py-2.5">
+                  <span className="text-gray-500">Minimum Floor</span>
+                  <span className="font-semibold text-gray-900">£5.00</span>
+                </div>
+                <div className="flex justify-between py-2.5">
+                  <span className="text-gray-500">Customer Delivery Fee</span>
+                  <span className="font-semibold text-gray-900">£1.49</span>
+                </div>
               </div>
-              <div className="flex justify-between py-1.5">
-                <span className="text-slate-500">API Transport:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Axios + JWT Bearer</span>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <Link
+              to="/admin/settings/delivery"
+              className="w-full text-center py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-800 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+            >
+              Configure Delivery Rules & Rates
+            </Link>
+          </div>
         </div>
       </main>
     </div>
