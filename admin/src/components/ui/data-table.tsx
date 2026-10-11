@@ -94,7 +94,7 @@ export function DataTable<TData, TValue>({
                 <TableRow key={`skeleton-${index}`} className="border-b border-gray-50">
                   {columns.map((_, colIndex) => (
                     <TableCell key={`col-${colIndex}`} className="py-3.5 first:pl-4 last:pr-4">
-                      <Skeleton className="h-4 w-full max-w-[120px] rounded" />
+                      <Skeleton className="h-4 w-full max-w-30 rounded" />
                     </TableCell>
                   ))}
                 </TableRow>

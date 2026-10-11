@@ -72,7 +72,7 @@ export function OrderStatusDonutChart({
         </div>
 
         {/* Legend / Status breakdown list */}
-        <div className="flex-1 w-full flex flex-col gap-3 min-w-[140px]">
+        <div className="flex-1 w-full flex flex-col gap-3 min-w-35">
           {data.map((item) => (
             <div
               key={item.status}

@@ -136,7 +136,7 @@ export function AppSidebar({ ordersCount = 12 }: AppSidebarProps) {
                         <Link to={item.url} className="flex items-center gap-3.5 w-full">
                           <item.icon
                             className={cn(
-                              "size-[18px] shrink-0 transition-colors",
+                              "size-4.5 shrink-0 transition-colors",
                               isActive ? "text-[#00875A]" : "text-gray-500"
                             )}
                           />
