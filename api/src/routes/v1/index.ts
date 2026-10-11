@@ -10,6 +10,7 @@ import { paymentRoutes } from "./payment.route";
 import { restaurantRoutes } from "./restaurant.route";
 import { searchRoutes } from "./search.route";
 import { deliveryRuleRoutes } from "./delivery-rule.route";
+import { adminAnalyticsRoutes } from "./admin-analytics.route";
 
 export const  routes =  Router();  
 
@@ -24,6 +25,7 @@ routes.use("/restaurants", restaurantRoutes);
 routes.use("/search", searchRoutes);
 routes.use("/delivery-rules", deliveryRuleRoutes);
 routes.use("/settings/delivery", deliveryRuleRoutes);
+routes.use("/admin/analytics", adminAnalyticsRoutes);
 
 
 

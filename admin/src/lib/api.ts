@@ -44,9 +44,26 @@ export const getCurrentUserQueryFn = async (): Promise<{
   return response.data;
 };
 
+/**
+ * Get Admin dashboard overview metrics (KPIs, Orders by status, Recent orders, Live events)
+ */
+export const getAdminAnalyticsOverviewQueryFn = async () => {
+  const response = await API.get("/admin/analytics/overview");
+  return response.data;
+};
+
+/**
+ * Get Admin revenue chart time-series data
+ */
+export const getAdminRevenueChartQueryFn = async (timeframe: string = "7d") => {
+  const response = await API.get(`/admin/analytics/revenue-chart?timeframe=${timeframe}`);
+  return response.data;
+};
+
 export function getApiErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
   return "An unexpected error occurred. Please try again.";
 }
+

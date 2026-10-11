@@ -4,7 +4,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/guards/ProtectedRoute";
 import { GuestRoute } from "@/components/guards/GuestRoute";
 import { LoginPage } from "@/pages/auth/Login";
-import { AdminDashboardPlaceholder } from "@/pages/admin/DashboardPlaceholder";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import { AdminDashboardPage } from "@/pages/admin/Dashboard";
 import { DeliveryRulesPage } from "@/pages/admin/DeliveryRules";
 import { RestaurantDashboardPlaceholder } from "@/pages/restaurant/DashboardPlaceholder";
 import { UnauthorizedPage } from "@/pages/Unauthorized";
@@ -39,7 +40,19 @@ export default function App() {
               />
               <Route
                 path="/admin/dashboard"
-                element={<AdminDashboardPlaceholder />}
+                element={
+                  <AdminLayout>
+                    <AdminDashboardPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <AdminLayout>
+                    <AdminDashboardPage />
+                  </AdminLayout>
+                }
               />
               <Route
                 path="/admin/settings/delivery"
